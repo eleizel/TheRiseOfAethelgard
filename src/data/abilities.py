@@ -1,0 +1,357 @@
+"""Declarative ability catalog for combat skills and spells."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum, auto
+from typing import Final
+
+
+class TargetScope(Enum):
+    SINGLE_ENEMY = auto()
+    ALL_ENEMIES = auto()
+    SINGLE_ALLY = auto()
+    ALL_ALLIES = auto()
+    SELF = auto()
+
+
+class AbilityElement(Enum):
+    PHYSICAL = auto()
+    FIRE = auto()
+    FROST = auto()
+    EARTH = auto()
+    HOLY = auto()
+    DARK = auto()
+    HEAL = auto()
+
+
+@dataclass(frozen=True)
+class AbilityDefinition:
+    id: str
+    name: str
+    description: str
+    mp_cost: int
+    scope: TargetScope
+    element: AbilityElement
+    power: int  # Base damage / heal amount
+    accuracy: float = 1.0
+    status_inflict: str | None = None
+    status_chance: float = 0.0
+
+
+ABILITY_REGISTRY: Final[dict[str, AbilityDefinition]] = {
+    # Basic Attacks
+    "basic_attack": AbilityDefinition(
+        id="basic_attack",
+        name="Strike",
+        description="Standard physical attack.",
+        mp_cost=0,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=10,
+    ),
+    # Rowan (Vanguard)
+    "shield_slam": AbilityDefinition(
+        id="shield_slam",
+        name="Shield Slam",
+        description="Heavy shield strike that deals physical damage and can stun.",
+        mp_cost=6,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=16,
+        status_inflict="STUN",
+        status_chance=0.50,
+    ),
+    "radiant_slash": AbilityDefinition(
+        id="radiant_slash",
+        name="Radiant Slash",
+        description="Imbues the blade with holy light to purge corruption.",
+        mp_cost=10,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.HOLY,
+        power=24,
+    ),
+    "rally_guard": AbilityDefinition(
+        id="rally_guard",
+        name="Rally Guard",
+        description="Boosts the defensive resolve of all allies.",
+        mp_cost=12,
+        scope=TargetScope.ALL_ALLIES,
+        element=AbilityElement.HOLY,
+        power=0,
+        status_inflict="DEFENSE_UP",
+        status_chance=1.0,
+    ),
+    # Lyra (Botanist)
+    "herbal_salve": AbilityDefinition(
+        id="herbal_salve",
+        name="Herbal Salve",
+        description="Applies an invigorating poultice restoring HP and boosting Speed.",
+        mp_cost=8,
+        scope=TargetScope.SINGLE_ALLY,
+        element=AbilityElement.HEAL,
+        power=45,
+        status_inflict="SPEED_UP",
+        status_chance=1.0,
+    ),
+    "soothing_bloom": AbilityDefinition(
+        id="soothing_bloom",
+        name="Soothing Bloom",
+        description="Summons medicinal blossoms to heal and grant Regeneration to all allies.",
+        mp_cost=18,
+        scope=TargetScope.ALL_ALLIES,
+        element=AbilityElement.HEAL,
+        power=30,
+        status_inflict="REGEN",
+        status_chance=1.0,
+    ),
+    "briar_thorn": AbilityDefinition(
+        id="briar_thorn",
+        name="Briar Thorn",
+        description="Barbed roots entangle the foe with earth damage and bleeding.",
+        mp_cost=7,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.EARTH,
+        power=14,
+        status_inflict="BLEED",
+        status_chance=0.50,
+    ),
+    # Caelen (Scout)
+    "twin_daggers": AbilityDefinition(
+        id="twin_daggers",
+        name="Twin Daggers",
+        description="Two rapid precision slashes.",
+        mp_cost=8,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=22,
+    ),
+    "venom_blade": AbilityDefinition(
+        id="venom_blade",
+        name="Venom Blade",
+        description="Coats blade in blighted viper toxin, inflicting poison.",
+        mp_cost=10,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=15,
+        status_inflict="POISON",
+        status_chance=0.80,
+    ),
+    "smoke_screen": AbilityDefinition(
+        id="smoke_screen",
+        name="Smoke Screen",
+        description="Blinds all enemies, lowering their attack accuracy.",
+        mp_cost=12,
+        scope=TargetScope.ALL_ENEMIES,
+        element=AbilityElement.PHYSICAL,
+        power=0,
+        status_inflict="BLIND",
+        status_chance=0.75,
+    ),
+    # Melissa (Weave Mage)
+    "flame_lance": AbilityDefinition(
+        id="flame_lance",
+        name="Flame Lance",
+        description="A piercing spear of concentrated arcane fire that can inflict Burn.",
+        mp_cost=12,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.FIRE,
+        power=32,
+        status_inflict="BURN",
+        status_chance=0.65,
+    ),
+    "frost_shard": AbilityDefinition(
+        id="frost_shard",
+        name="Frost Shard",
+        description="Hurls jagged ice crystal, chilling and weakening the foe.",
+        mp_cost=10,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.FROST,
+        power=26,
+        status_inflict="WEAKEN",
+        status_chance=0.65,
+    ),
+    "arcane_ward": AbilityDefinition(
+        id="arcane_ward",
+        name="Arcane Ward",
+        description="Forms a barrier that enhances magic resistance.",
+        mp_cost=14,
+        scope=TargetScope.ALL_ALLIES,
+        element=AbilityElement.HOLY,
+        power=0,
+        status_inflict="DEFENSE_UP",
+        status_chance=1.0,
+    ),
+    # Progression Unlocks
+    "aegis_bash": AbilityDefinition(
+        id="aegis_bash",
+        name="Aegis Bash",
+        description="Crushing shield impact that deals heavy damage and stuns.",
+        mp_cost=14,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=28,
+        status_inflict="STUN",
+        status_chance=0.50,
+    ),
+    "holy_brand": AbilityDefinition(
+        id="holy_brand",
+        name="Holy Brand",
+        description="Blazing sacred strike dealing severe holy retribution.",
+        mp_cost=16,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.HOLY,
+        power=36,
+    ),
+    "sunwarden_bastion": AbilityDefinition(
+        id="sunwarden_bastion",
+        name="Sunwarden Bastion",
+        description="Imbues the entire party with impenetrable holy bulwarks.",
+        mp_cost=24,
+        scope=TargetScope.ALL_ALLIES,
+        element=AbilityElement.HOLY,
+        power=0,
+        status_inflict="DEFENSE_UP",
+        status_chance=1.0,
+    ),
+    "regrowth": AbilityDefinition(
+        id="regrowth",
+        name="Regrowth",
+        description="Envelops an ally in soothing vitality, granting regeneration.",
+        mp_cost=15,
+        scope=TargetScope.SINGLE_ALLY,
+        element=AbilityElement.HEAL,
+        power=35,
+        status_inflict="REGEN",
+        status_chance=1.0,
+    ),
+    "thornguard": AbilityDefinition(
+        id="thornguard",
+        name="Thornguard",
+        description="Wreaths allies in barbed briars that protect and retaliate.",
+        mp_cost=16,
+        scope=TargetScope.ALL_ALLIES,
+        element=AbilityElement.EARTH,
+        power=0,
+        status_inflict="DEFENSE_UP",
+        status_chance=1.0,
+    ),
+    "wrath_of_the_grove": AbilityDefinition(
+        id="wrath_of_the_grove",
+        name="Wrath of the Grove",
+        description="Summons colossal root spires erupting beneath all foes.",
+        mp_cost=26,
+        scope=TargetScope.ALL_ENEMIES,
+        element=AbilityElement.EARTH,
+        power=38,
+        status_inflict="BLEED",
+        status_chance=0.60,
+    ),
+    "phantom_flurry": AbilityDefinition(
+        id="phantom_flurry",
+        name="Phantom Flurry",
+        description="Flurry of phantom blade strikes across the enemy formation.",
+        mp_cost=18,
+        scope=TargetScope.ALL_ENEMIES,
+        element=AbilityElement.PHYSICAL,
+        power=25,
+    ),
+    "coup_de_grace": AbilityDefinition(
+        id="coup_de_grace",
+        name="Coup de Grâce",
+        description="Lethal precision thrust dealing extreme critical execution damage.",
+        mp_cost=20,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=55,
+    ),
+    "blizzard_surge": AbilityDefinition(
+        id="blizzard_surge",
+        name="Blizzard Surge",
+        description="Freezing gale freezing all enemies with frost crystals.",
+        mp_cost=22,
+        scope=TargetScope.ALL_ENEMIES,
+        element=AbilityElement.FROST,
+        power=34,
+    ),
+    "pyroclasm": AbilityDefinition(
+        id="pyroclasm",
+        name="Pyroclasm",
+        description="Cataclysmic burst of primeval flame.",
+        mp_cost=25,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.FIRE,
+        power=52,
+    ),
+    "supernova": AbilityDefinition(
+        id="supernova",
+        name="Supernova",
+        description="Unleashes the collapsed energy of the arcane weave onto all enemies.",
+        mp_cost=35,
+        scope=TargetScope.ALL_ENEMIES,
+        element=AbilityElement.FIRE,
+        power=50,
+    ),
+    # Hunter (Jack) Abilities
+    "aimed_shot": AbilityDefinition(
+        id="aimed_shot",
+        name="Aimed Shot",
+        description="Steady precision bow shot dealing high single-target damage.",
+        mp_cost=7,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=26,
+        accuracy=1.0,
+    ),
+    "piercing_arrow": AbilityDefinition(
+        id="piercing_arrow",
+        name="Piercing Arrow",
+        description="Barbed arrow that punches through armor and weakens enemy guard.",
+        mp_cost=10,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=30,
+        status_inflict="armor_break",
+        status_chance=0.60,
+    ),
+    "hunters_mark": AbilityDefinition(
+        id="hunters_mark",
+        name="Hunter's Mark",
+        description="Marks prey with keen focus, boosting Attack and Critical rate.",
+        mp_cost=8,
+        scope=TargetScope.SELF,
+        element=AbilityElement.PHYSICAL,
+        power=0,
+        status_inflict="attack_up",
+        status_chance=1.0,
+    ),
+    "snare_trap": AbilityDefinition(
+        id="snare_trap",
+        name="Snare Trap",
+        description="Launches a spring-loaded snare arrow with a 60% chance to stun.",
+        mp_cost=14,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=28,
+        status_inflict="stun",
+        status_chance=0.60,
+    ),
+    "twin_volley": AbilityDefinition(
+        id="twin_volley",
+        name="Twin Volley",
+        description="Fires two rapid-succession arrows into a single target.",
+        mp_cost=18,
+        scope=TargetScope.SINGLE_ENEMY,
+        element=AbilityElement.PHYSICAL,
+        power=44,
+    ),
+    "arrow_rain": AbilityDefinition(
+        id="arrow_rain",
+        name="Arrow Rain",
+        description="Looses a sky-darkening barrage of arrows across all enemies.",
+        mp_cost=26,
+        scope=TargetScope.ALL_ENEMIES,
+        element=AbilityElement.PHYSICAL,
+        power=38,
+    ),
+}

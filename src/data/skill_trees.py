@@ -1,0 +1,297 @@
+"""Declarative skill tree definitions for character archetypes."""
+
+from __future__ import annotations
+
+from typing import Final
+
+from src.entities.actor import Stats
+from src.systems.progression.skill_tree import CharacterSkillTree, NodeType, SkillNode
+
+ROWAN_TREE_NODES: Final[dict[str, SkillNode]] = {
+    "rowan_hp_1": SkillNode(
+        id="rowan_hp_1",
+        name="Iron Constitution",
+        description="Permanently increases Max HP by +25.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(max_hp=25),
+        prerequisites=[],
+        tier=1,
+    ),
+    "rowan_def_1": SkillNode(
+        id="rowan_def_1",
+        name="Bulwark Stance",
+        description="Permanently increases Defense by +4.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(defense=4),
+        prerequisites=[],
+        tier=1,
+    ),
+    "rowan_skill_1": SkillNode(
+        id="rowan_skill_1",
+        name="Aegis Bash",
+        description="Unlocks Aegis Bash: Crushing shield strike with 50% stun chance.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="aegis_bash",
+        prerequisites=["rowan_def_1"],
+        tier=2,
+    ),
+    "rowan_atk_1": SkillNode(
+        id="rowan_atk_1",
+        name="Righteous Vigor",
+        description="Permanently increases Attack by +4.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(attack=4),
+        prerequisites=["rowan_hp_1"],
+        tier=2,
+    ),
+    "rowan_skill_2": SkillNode(
+        id="rowan_skill_2",
+        name="Holy Brand",
+        description="Unlocks Holy Brand: High power radiant smite.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="holy_brand",
+        prerequisites=["rowan_atk_1"],
+        tier=3,
+    ),
+    "rowan_ult": SkillNode(
+        id="rowan_ult",
+        name="Sunwarden Bastion",
+        description="Unlocks Sunwarden Bastion: Grants whole party heavy defensive ward.",
+        cost_sp=3,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="sunwarden_bastion",
+        prerequisites=["rowan_skill_1", "rowan_skill_2"],
+        tier=4,
+    ),
+}
+
+LYRA_TREE_NODES: Final[dict[str, SkillNode]] = {
+    "lyra_mp_1": SkillNode(
+        id="lyra_mp_1",
+        name="Forest Harmony",
+        description="Permanently increases Max MP by +20.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(max_mp=20),
+        prerequisites=[],
+        tier=1,
+    ),
+    "lyra_mag_1": SkillNode(
+        id="lyra_mag_1",
+        name="Herbal Intuition",
+        description="Permanently increases Magic Attack by +4.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(magic_attack=4),
+        prerequisites=[],
+        tier=1,
+    ),
+    "lyra_skill_1": SkillNode(
+        id="lyra_skill_1",
+        name="Regrowth",
+        description="Unlocks Regrowth: Regenerative healing over time.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="regrowth",
+        prerequisites=["lyra_mp_1"],
+        tier=2,
+    ),
+    "lyra_skill_2": SkillNode(
+        id="lyra_skill_2",
+        name="Thornguard",
+        description="Unlocks Thornguard: Earth ward boosting defense for all allies.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="thornguard",
+        prerequisites=["lyra_mag_1"],
+        tier=2,
+    ),
+    "lyra_ult": SkillNode(
+        id="lyra_ult",
+        name="Wrath of the Grove",
+        description="Unlocks Wrath of the Grove: Massive Earth AoE inflicting Bleed.",
+        cost_sp=3,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="wrath_of_the_grove",
+        prerequisites=["lyra_skill_1", "lyra_skill_2"],
+        tier=3,
+    ),
+}
+
+CAELEN_TREE_NODES: Final[dict[str, SkillNode]] = {
+    "caelen_spd_1": SkillNode(
+        id="caelen_spd_1",
+        name="Fleet Steps",
+        description="Permanently increases Speed by +4.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(speed=4),
+        prerequisites=[],
+        tier=1,
+    ),
+    "caelen_crit_1": SkillNode(
+        id="caelen_crit_1",
+        name="Keen Eye",
+        description="Permanently increases Critical Chance by +5%.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(crit_chance=0.05),
+        prerequisites=[],
+        tier=1,
+    ),
+    "caelen_skill_1": SkillNode(
+        id="caelen_skill_1",
+        name="Phantom Flurry",
+        description="Unlocks Phantom Flurry: Multi-target dagger barrage.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="phantom_flurry",
+        prerequisites=["caelen_spd_1"],
+        tier=2,
+    ),
+    "caelen_ult": SkillNode(
+        id="caelen_ult",
+        name="Coup de Grâce",
+        description="Unlocks Coup de Grâce: Devastating single-target execution thrust.",
+        cost_sp=3,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="coup_de_grace",
+        prerequisites=["caelen_skill_1", "caelen_crit_1"],
+        tier=3,
+    ),
+}
+
+MELISSA_TREE_NODES: Final[dict[str, SkillNode]] = {
+    "melissa_mp_1": SkillNode(
+        id="melissa_mp_1",
+        name="Leyline Conductor",
+        description="Permanently increases Max MP by +25.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(max_mp=25),
+        prerequisites=[],
+        tier=1,
+    ),
+    "melissa_mag_1": SkillNode(
+        id="melissa_mag_1",
+        name="Arcane Prowess",
+        description="Permanently increases Magic Attack by +5.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(magic_attack=5),
+        prerequisites=[],
+        tier=1,
+    ),
+    "melissa_skill_1": SkillNode(
+        id="melissa_skill_1",
+        name="Blizzard Surge",
+        description="Unlocks Blizzard Surge: AoE Frost blast chilling all foes.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="blizzard_surge",
+        prerequisites=["melissa_mp_1"],
+        tier=2,
+    ),
+    "melissa_skill_2": SkillNode(
+        id="melissa_skill_2",
+        name="Pyroclasm",
+        description="Unlocks Pyroclasm: High-power concentrated Fire blast.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="pyroclasm",
+        prerequisites=["melissa_mag_1"],
+        tier=2,
+    ),
+    "melissa_ult": SkillNode(
+        id="melissa_ult",
+        name="Supernova",
+        description="Unlocks Supernova: Arcane devastation across the entire battlefield.",
+        cost_sp=3,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="supernova",
+        prerequisites=["melissa_skill_1", "melissa_skill_2"],
+        tier=3,
+    ),
+}
+
+JACK_TREE_NODES: Final[dict[str, SkillNode]] = {
+    "jack_atk_1": SkillNode(
+        id="jack_atk_1",
+        name="Keen Eye",
+        description="Permanently increases Attack by +4.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(attack=4),
+        prerequisites=[],
+        tier=1,
+    ),
+    "jack_spd_1": SkillNode(
+        id="jack_spd_1",
+        name="Woodland Stride",
+        description="Permanently increases Speed by +3 and Crit Chance by +3%.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(speed=3, crit_chance=0.03),
+        prerequisites=[],
+        tier=1,
+    ),
+    "jack_skill_1": SkillNode(
+        id="jack_skill_1",
+        name="Snare Trap",
+        description="Unlocks Snare Trap: Barbed shot with a 60% chance to stun.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="snare_trap",
+        prerequisites=["jack_atk_1"],
+        tier=2,
+    ),
+    "jack_hp_1": SkillNode(
+        id="jack_hp_1",
+        name="Tracker's Grit",
+        description="Permanently increases Max HP by +20 and Defense by +3.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(max_hp=20, defense=3),
+        prerequisites=["jack_spd_1"],
+        tier=2,
+    ),
+    "jack_skill_2": SkillNode(
+        id="jack_skill_2",
+        name="Twin Volley",
+        description="Unlocks Twin Volley: Rapid two-arrow burst against one foe.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="twin_volley",
+        prerequisites=["jack_spd_1"],
+        tier=2,
+    ),
+    "jack_ult": SkillNode(
+        id="jack_ult",
+        name="Arrow Rain",
+        description="Unlocks Arrow Rain: Sky-darkening barrage hitting all enemies.",
+        cost_sp=3,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="arrow_rain",
+        prerequisites=["jack_skill_1", "jack_skill_2"],
+        tier=3,
+    ),
+}
+
+CHARACTER_TREES: Final[dict[str, dict[str, SkillNode]]] = {
+    "rowan": ROWAN_TREE_NODES,
+    "lyra": LYRA_TREE_NODES,
+    "caelen": CAELEN_TREE_NODES,
+    "melissa": MELISSA_TREE_NODES,
+    "jack": JACK_TREE_NODES,
+}
+
+
+def create_character_skill_tree(character_id: str) -> CharacterSkillTree:
+    """Create skill tree instance for character with their archetype nodes."""
+    nodes = CHARACTER_TREES.get(character_id, ROWAN_TREE_NODES)
+    return CharacterSkillTree(character_id=character_id, nodes=dict(nodes))

@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "the-rise-of-aethelgard"
+version = "0.1.0"
+description = "A 16-bit SNES HD-2D Classic JRPG built with pygame-ce"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Sergio" }
+]
+dependencies = [
+    "pygame-ce>=2.5.0",
+    "pygame-gui>=0.6.14",
+    "numpy>=1.24.0",
+    "pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+ignore = ["E501"]

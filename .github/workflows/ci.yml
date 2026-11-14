@@ -1,0 +1,117 @@
+name: CI & Windows Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    env:
+      SDL_VIDEODRIVER: dummy
+      SDL_AUDIODRIVER: dummy
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Run Ruff linter
+        run: uv run ruff check src tests
+
+      - name: Run Pytest suite
+        run: uv run pytest -q
+
+  build-windows:
+    name: Build Windows Executable
+    needs: lint-and-test
+    if: github.event_name != 'pull_request'
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies and PyInstaller
+        run: |
+          uv sync --frozen --extra dev
+          uv pip install pyinstaller
+
+      - name: Build Windows bundle with PyInstaller
+        shell: pwsh
+        run: |
+          uv run pyinstaller `
+            --noconfirm `
+            --clean `
+            --windowed `
+            --onedir `
+            --name "TheRiseOfAethelgard" `
+            --add-data "assets;assets" `
+            --collect-all pygame_gui `
+            main.py
+
+      - name: Verify build output
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "dist/TheRiseOfAethelgard/TheRiseOfAethelgard.exe")) {
+            throw "Executable missing from dist/TheRiseOfAethelgard/"
+          }
+          if (-not (Test-Path "dist/TheRiseOfAethelgard/_internal/assets/maps")) {
+            throw "Assets missing from PyInstaller bundle"
+          }
+
+      - name: Package Windows ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist/TheRiseOfAethelgard/*" -DestinationPath "TheRiseOfAethelgard-windows-x64.zip" -Force
+
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TheRiseOfAethelgard-windows-x64
+          path: TheRiseOfAethelgard-windows-x64.zip
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    needs: build-windows
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: TheRiseOfAethelgard-windows-x64
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TheRiseOfAethelgard-windows-x64.zip
+          generate_release_notes: true

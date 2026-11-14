@@ -1,0 +1,258 @@
+"""Class archetype registry and stat scaling tables."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Final
+
+from src.entities.actor import Stats
+
+
+@dataclass(frozen=True)
+class ClassDefinition:
+    id: str
+    name: str
+    description: str
+    base_stats: Stats
+    growth_per_level: Stats
+    starting_abilities: list[str] = field(default_factory=list)
+
+
+CLASS_REGISTRY: Final[dict[str, ClassDefinition]] = {
+    # Wave 1 Core Archetypes
+    "vanguard": ClassDefinition(
+        id="vanguard",
+        name="Sunwarden Vanguard",
+        description="Resilient protector trained in heavy armor, shield defense, and righteous strikes.",
+        base_stats=Stats(
+            max_hp=140,
+            max_mp=25,
+            attack=14,
+            defense=14,
+            magic_attack=8,
+            magic_defense=10,
+            speed=9,
+            crit_chance=0.05,
+        ),
+        growth_per_level=Stats(
+            max_hp=18,
+            max_mp=3,
+            attack=2,
+            defense=3,
+            magic_attack=1,
+            magic_defense=2,
+            speed=1,
+            crit_chance=0.002,
+        ),
+        starting_abilities=["shield_slam", "radiant_slash", "rally_guard"],
+    ),
+    "botanist": ClassDefinition(
+        id="botanist",
+        name="Grove Botanist",
+        description="Healer and flora specialist who crafts restorative balms and earth magic.",
+        base_stats=Stats(
+            max_hp=95,
+            max_mp=55,
+            attack=8,
+            defense=8,
+            magic_attack=14,
+            magic_defense=15,
+            speed=11,
+            crit_chance=0.04,
+        ),
+        growth_per_level=Stats(
+            max_hp=11,
+            max_mp=6,
+            attack=1,
+            defense=1,
+            magic_attack=3,
+            magic_defense=3,
+            speed=1,
+            crit_chance=0.002,
+        ),
+        starting_abilities=["herbal_salve", "briar_thorn", "soothing_bloom"],
+    ),
+    "scout": ClassDefinition(
+        id="scout",
+        name="Frontier Scout",
+        description="Agile skirmisher specialized in swift dual-blade strikes and debilitating toxins.",
+        base_stats=Stats(
+            max_hp=105,
+            max_mp=30,
+            attack=15,
+            defense=9,
+            magic_attack=7,
+            magic_defense=8,
+            speed=16,
+            crit_chance=0.10,
+        ),
+        growth_per_level=Stats(
+            max_hp=13,
+            max_mp=3,
+            attack=3,
+            defense=1,
+            magic_attack=1,
+            magic_defense=1,
+            speed=2,
+            crit_chance=0.005,
+        ),
+        starting_abilities=["twin_daggers", "venom_blade", "smoke_screen"],
+    ),
+    "weave_mage": ClassDefinition(
+        id="weave_mage",
+        name="Weave Scholar",
+        description="Arcane academic channeling elemental ley-lines into devastating bursts.",
+        base_stats=Stats(
+            max_hp=90,
+            max_mp=65,
+            attack=7,
+            defense=7,
+            magic_attack=18,
+            magic_defense=14,
+            speed=10,
+            crit_chance=0.06,
+        ),
+        growth_per_level=Stats(
+            max_hp=10,
+            max_mp=7,
+            attack=1,
+            defense=1,
+            magic_attack=4,
+            magic_defense=2,
+            speed=1,
+            crit_chance=0.003,
+        ),
+        starting_abilities=["flame_lance", "frost_shard", "arcane_ward"],
+    ),
+    # Wave 2 Planned Archetypes (Declaratively ready)
+    "berserker": ClassDefinition(
+        id="berserker",
+        name="Ironclad Berserker",
+        description="Fierce heavy hitter wielding two-handed axes and relentless counter-attacks.",
+        base_stats=Stats(
+            max_hp=160,
+            max_mp=20,
+            attack=18,
+            defense=11,
+            magic_attack=5,
+            magic_defense=6,
+            speed=8,
+            crit_chance=0.08,
+        ),
+        growth_per_level=Stats(
+            max_hp=22,
+            max_mp=2,
+            attack=4,
+            defense=2,
+            magic_attack=0,
+            magic_defense=1,
+            speed=1,
+            crit_chance=0.004,
+        ),
+        starting_abilities=["skull_cleave", "blood_rage"],
+    ),
+    "inquisitor": ClassDefinition(
+        id="inquisitor",
+        name="Templar Inquisitor",
+        description="Defected ecclesiastical enforcer wielding forbidden blood rites and holy vengeance.",
+        base_stats=Stats(
+            max_hp=125,
+            max_mp=40,
+            attack=15,
+            defense=11,
+            magic_attack=13,
+            magic_defense=12,
+            speed=10,
+            crit_chance=0.06,
+        ),
+        growth_per_level=Stats(
+            max_hp=15,
+            max_mp=4,
+            attack=3,
+            defense=2,
+            magic_attack=2,
+            magic_defense=2,
+            speed=1,
+            crit_chance=0.003,
+        ),
+        starting_abilities=["penance_strike", "dark_communion"],
+    ),
+    "bard": ClassDefinition(
+        id="bard",
+        name="Steppe Minstrel",
+        description="Wandering poet manipulating tempo, inspiring companions, and confounding foes.",
+        base_stats=Stats(
+            max_hp=100,
+            max_mp=50,
+            attack=10,
+            defense=9,
+            magic_attack=12,
+            magic_defense=12,
+            speed=14,
+            crit_chance=0.07,
+        ),
+        growth_per_level=Stats(
+            max_hp=12,
+            max_mp=5,
+            attack=2,
+            defense=1,
+            magic_attack=2,
+            magic_defense=2,
+            speed=2,
+            crit_chance=0.003,
+        ),
+        starting_abilities=["anthem_of_courage", "dissonant_chord"],
+    ),
+    "artificer": ClassDefinition(
+        id="artificer",
+        name="Blight Artificer",
+        description="Eccentric inventor crafting clockwork contraptions and volatile crystal vials.",
+        base_stats=Stats(
+            max_hp=110,
+            max_mp=45,
+            attack=12,
+            defense=10,
+            magic_attack=13,
+            magic_defense=11,
+            speed=12,
+            crit_chance=0.05,
+        ),
+        growth_per_level=Stats(
+            max_hp=13,
+            max_mp=5,
+            attack=2,
+            defense=2,
+            magic_attack=2,
+            magic_defense=2,
+            speed=1,
+            crit_chance=0.003,
+        ),
+        starting_abilities=["pyro_flask", "clockwork_turret"],
+    ),
+    "hunter": ClassDefinition(
+        id="hunter",
+        name="Wilderness Hunter",
+        description="Keen-eyed marksman specializing in precision longbow strikes, traps, and rapid volleys.",
+        base_stats=Stats(
+            max_hp=100,
+            max_mp=35,
+            attack=15,
+            defense=9,
+            magic_attack=8,
+            magic_defense=9,
+            speed=14,
+            crit_chance=0.14,
+        ),
+        growth_per_level=Stats(
+            max_hp=13,
+            max_mp=4,
+            attack=3,
+            defense=2,
+            magic_attack=1,
+            magic_defense=1,
+            speed=2,
+            crit_chance=0.005,
+        ),
+        starting_abilities=["aimed_shot", "piercing_arrow", "hunters_mark"],
+    ),
+}

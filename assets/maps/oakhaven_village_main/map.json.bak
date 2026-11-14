@@ -1,0 +1,872 @@
+{
+  "id": "oakhaven_village_main",
+  "name": "Oakhaven Village Main",
+  "dimensions": {
+    "width": 1280,
+    "height": 720
+  },
+  "tile_size": 32,
+  "background": {
+    "type": "single_composite",
+    "image": "assets/maps/oakhaven_village_main/background.png"
+  },
+  "atmosphere": {
+    "ambient_light": [
+      215,
+      220,
+      240
+    ],
+    "ambient_particles": "dust",
+    "particle_count": 20
+  },
+  "collisions": [
+    {
+      "id": "col_1",
+      "x": 730,
+      "y": 424,
+      "w": 488,
+      "h": 137
+    },
+    {
+      "id": "col_2",
+      "x": 1219,
+      "y": 459,
+      "w": 61,
+      "h": 260
+    },
+    {
+      "id": "col_3",
+      "x": 899,
+      "y": 564,
+      "w": 318,
+      "h": 155
+    },
+    {
+      "id": "col_4",
+      "x": 798,
+      "y": 633,
+      "w": 102,
+      "h": 84
+    },
+    {
+      "id": "col_5",
+      "x": 853,
+      "y": 622,
+      "w": 50,
+      "h": 12
+    },
+    {
+      "id": "col_6",
+      "x": 737,
+      "y": 631,
+      "w": 60,
+      "h": 86
+    },
+    {
+      "id": "col_7",
+      "x": 789,
+      "y": 618,
+      "w": 46,
+      "h": 13
+    },
+    {
+      "id": "col_8",
+      "x": 644,
+      "y": 663,
+      "w": 91,
+      "h": 56
+    },
+    {
+      "id": "col_9",
+      "x": 648,
+      "y": 493,
+      "w": 35,
+      "h": 91
+    },
+    {
+      "id": "col_10",
+      "x": 637,
+      "y": 501,
+      "w": 10,
+      "h": 72
+    },
+    {
+      "id": "col_11",
+      "x": 622,
+      "y": 523,
+      "w": 11,
+      "h": 44
+    },
+    {
+      "id": "col_12",
+      "x": 708,
+      "y": 431,
+      "w": 25,
+      "h": 54
+    },
+    {
+      "id": "col_13",
+      "x": 688,
+      "y": 493,
+      "w": 41,
+      "h": 67
+    },
+    {
+      "id": "col_14",
+      "x": 691,
+      "y": 563,
+      "w": 110,
+      "h": 43
+    },
+    {
+      "id": "col_15",
+      "x": 644,
+      "y": 429,
+      "w": 42,
+      "h": 38
+    },
+    {
+      "id": "col_16",
+      "x": 624,
+      "y": 684,
+      "w": 22,
+      "h": 37
+    },
+    {
+      "id": "col_17",
+      "x": 613,
+      "y": 626,
+      "w": 32,
+      "h": 34
+    },
+    {
+      "id": "col_18",
+      "x": 500,
+      "y": 626,
+      "w": 32,
+      "h": 33
+    },
+    {
+      "id": "col_19",
+      "x": 473,
+      "y": 428,
+      "w": 37,
+      "h": 40
+    },
+    {
+      "id": "col_20",
+      "x": 1054,
+      "y": 384,
+      "w": 108,
+      "h": 41
+    },
+    {
+      "id": "col_21",
+      "x": 1162,
+      "y": 406,
+      "w": 21,
+      "h": 18
+    },
+    {
+      "id": "col_22",
+      "x": 1066,
+      "y": 367,
+      "w": 71,
+      "h": 18
+    },
+    {
+      "id": "col_23",
+      "x": 1046,
+      "y": 264,
+      "w": 169,
+      "h": 48
+    },
+    {
+      "id": "col_24",
+      "x": 1044,
+      "y": 145,
+      "w": 76,
+      "h": 116
+    },
+    {
+      "id": "col_25",
+      "x": 1121,
+      "y": 72,
+      "w": 43,
+      "h": 131
+    },
+    {
+      "id": "col_26",
+      "x": 1168,
+      "y": 91,
+      "w": 31,
+      "h": 109
+    },
+    {
+      "id": "col_27",
+      "x": 1205,
+      "y": -1,
+      "w": 76,
+      "h": 213
+    },
+    {
+      "id": "col_28",
+      "x": 1212,
+      "y": 215,
+      "w": 72,
+      "h": 10
+    },
+    {
+      "id": "col_29",
+      "x": 1238,
+      "y": 219,
+      "w": 40,
+      "h": 38
+    },
+    {
+      "id": "col_30",
+      "x": 3,
+      "y": 0,
+      "w": 1204,
+      "h": 141
+    },
+    {
+      "id": "col_31",
+      "x": 3,
+      "y": 658,
+      "w": 491,
+      "h": 61
+    },
+    {
+      "id": "col_32",
+      "x": 3,
+      "y": 536,
+      "w": 43,
+      "h": 125
+    },
+    {
+      "id": "col_33",
+      "x": 46,
+      "y": 574,
+      "w": 60,
+      "h": 81
+    },
+    {
+      "id": "col_34",
+      "x": 255,
+      "y": 615,
+      "w": 42,
+      "h": 43
+    },
+    {
+      "id": "col_35",
+      "x": 230,
+      "y": 627,
+      "w": 28,
+      "h": 33
+    },
+    {
+      "id": "col_36",
+      "x": 313,
+      "y": 623,
+      "w": 183,
+      "h": 38
+    },
+    {
+      "id": "col_37",
+      "x": 345,
+      "y": 591,
+      "w": 102,
+      "h": 32
+    },
+    {
+      "id": "col_38",
+      "x": 441,
+      "y": 605,
+      "w": 33,
+      "h": 14
+    },
+    {
+      "id": "col_39",
+      "x": 454,
+      "y": 507,
+      "w": 59,
+      "h": 55
+    },
+    {
+      "id": "col_40",
+      "x": 424,
+      "y": 452,
+      "w": 60,
+      "h": 62
+    },
+    {
+      "id": "col_41",
+      "x": 164,
+      "y": 452,
+      "w": 286,
+      "h": 109
+    },
+    {
+      "id": "col_42",
+      "x": 3,
+      "y": 450,
+      "w": 167,
+      "h": 84
+    },
+    {
+      "id": "col_43",
+      "x": 0,
+      "y": 405,
+      "w": 417,
+      "h": 47
+    },
+    {
+      "id": "col_44",
+      "x": 200,
+      "y": 376,
+      "w": 32,
+      "h": 29
+    },
+    {
+      "id": "col_45",
+      "x": 251,
+      "y": 394,
+      "w": 83,
+      "h": 8
+    },
+    {
+      "id": "col_46",
+      "x": 265,
+      "y": 383,
+      "w": 54,
+      "h": 8
+    },
+    {
+      "id": "col_47",
+      "x": 277,
+      "y": 373,
+      "w": 30,
+      "h": 9
+    },
+    {
+      "id": "col_48",
+      "x": 286,
+      "y": 364,
+      "w": 9,
+      "h": 8
+    },
+    {
+      "id": "col_49",
+      "x": 2,
+      "y": 364,
+      "w": 50,
+      "h": 42
+    },
+    {
+      "id": "col_50",
+      "x": 52,
+      "y": 376,
+      "w": 35,
+      "h": 30
+    },
+    {
+      "id": "col_51",
+      "x": 109,
+      "y": 306,
+      "w": 33,
+      "h": 33
+    },
+    {
+      "id": "col_52",
+      "x": 318,
+      "y": 306,
+      "w": 31,
+      "h": 33
+    },
+    {
+      "id": "col_53",
+      "x": 783,
+      "y": 307,
+      "w": 30,
+      "h": 29
+    },
+    {
+      "id": "col_54",
+      "x": 997,
+      "y": 305,
+      "w": 29,
+      "h": 32
+    },
+    {
+      "id": "col_55",
+      "x": 4,
+      "y": 131,
+      "w": 341,
+      "h": 133
+    },
+    {
+      "id": "col_56",
+      "x": 1,
+      "y": 261,
+      "w": 49,
+      "h": 58
+    },
+    {
+      "id": "col_57",
+      "x": 44,
+      "y": 262,
+      "w": 32,
+      "h": 30
+    },
+    {
+      "id": "col_58",
+      "x": 241,
+      "y": 366,
+      "w": 8,
+      "h": 8
+    },
+    {
+      "id": "col_59",
+      "x": 366,
+      "y": 140,
+      "w": 32,
+      "h": 146
+    },
+    {
+      "id": "col_60",
+      "x": 346,
+      "y": 144,
+      "w": 406,
+      "h": 26
+    },
+    {
+      "id": "col_61",
+      "x": 396,
+      "y": 167,
+      "w": 132,
+      "h": 43
+    },
+    {
+      "id": "col_62",
+      "x": 607,
+      "y": 170,
+      "w": 114,
+      "h": 42
+    },
+    {
+      "id": "col_63",
+      "x": 400,
+      "y": 211,
+      "w": 81,
+      "h": 57
+    },
+    {
+      "id": "col_64",
+      "x": 488,
+      "y": 213,
+      "w": 31,
+      "h": 28
+    },
+    {
+      "id": "col_65",
+      "x": 618,
+      "y": 205,
+      "w": 31,
+      "h": 36
+    },
+    {
+      "id": "col_66",
+      "x": 655,
+      "y": 195,
+      "w": 82,
+      "h": 69
+    },
+    {
+      "id": "col_67",
+      "x": 742,
+      "y": 183,
+      "w": 20,
+      "h": 104
+    },
+    {
+      "id": "col_68",
+      "x": 802,
+      "y": 140,
+      "w": 255,
+      "h": 108
+    },
+    {
+      "id": "col_69",
+      "x": 841,
+      "y": 251,
+      "w": 203,
+      "h": 18
+    },
+    {
+      "id": "col_70",
+      "x": 651,
+      "y": 270,
+      "w": 79,
+      "h": 85
+    },
+    {
+      "id": "col_71",
+      "x": 621,
+      "y": 335,
+      "w": 26,
+      "h": 20
+    },
+    {
+      "id": "col_72",
+      "x": 490,
+      "y": 336,
+      "w": 29,
+      "h": 19
+    },
+    {
+      "id": "col_73",
+      "x": 405,
+      "y": 308,
+      "w": 84,
+      "h": 46
+    },
+    {
+      "id": "col_74",
+      "x": 402,
+      "y": 271,
+      "w": 84,
+      "h": 40
+    },
+    {
+      "id": "col_75",
+      "x": 536,
+      "y": 255,
+      "w": 79,
+      "h": 54
+    },
+    {
+      "id": "col_76",
+      "x": 561,
+      "y": 229,
+      "w": 21,
+      "h": 27
+    }
+  ],
+  "props": [
+    {
+      "id": "light_lamp_1",
+      "prop_type": "light_marker",
+      "x": 787,
+      "y": 284,
+      "width": 22,
+      "height": 18,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_2",
+      "prop_type": "light_marker",
+      "x": 1000,
+      "y": 288,
+      "width": 17,
+      "height": 14,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_3",
+      "prop_type": "light_marker",
+      "x": 656,
+      "y": 403,
+      "width": 19,
+      "height": 15,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_4",
+      "prop_type": "light_marker",
+      "x": 481,
+      "y": 406,
+      "width": 17,
+      "height": 17,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_5",
+      "prop_type": "light_marker",
+      "x": 505,
+      "y": 604,
+      "width": 20,
+      "height": 20,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_6",
+      "prop_type": "light_marker",
+      "x": 621,
+      "y": 604,
+      "width": 17,
+      "height": 14,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_7",
+      "prop_type": "light_marker",
+      "x": 895,
+      "y": 503,
+      "width": 25,
+      "height": 21,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_8",
+      "prop_type": "light_marker",
+      "x": 327,
+      "y": 507,
+      "width": 17,
+      "height": 14,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_9",
+      "prop_type": "light_marker",
+      "x": 114,
+      "y": 286,
+      "width": 20,
+      "height": 17,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_10",
+      "prop_type": "light_marker",
+      "x": 324,
+      "y": 285,
+      "width": 18,
+      "height": 15,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_11",
+      "prop_type": "light_marker",
+      "x": 249,
+      "y": 208,
+      "width": 18,
+      "height": 18,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_12",
+      "prop_type": "light_marker",
+      "x": 601,
+      "y": 120,
+      "width": 19,
+      "height": 16,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_13",
+      "prop_type": "light_marker",
+      "x": 515,
+      "y": 119,
+      "width": 17,
+      "height": 18,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "light_lamp_14",
+      "prop_type": "light_marker",
+      "x": 938,
+      "y": 207,
+      "width": 24,
+      "height": 22,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "id": "exit_oakhaven_village_outskirts",
+      "trigger_type": "transition",
+      "x": 1255,
+      "y": 268,
+      "width": 21,
+      "height": 192,
+      "target_map_id": "oakhaven_village",
+      "target_x": 50,
+      "target_y": 340
+    },
+    {
+      "id": "trigger_enter_shop_oakhaven",
+      "trigger_type": "dialogue",
+      "x": 854,
+      "y": 549,
+      "width": 48,
+      "height": 28,
+      "dialogue_id": "enter_shop_oakhaven",
+      "target_map_id": "shop_interior_oakhaven"
+    },
+    {
+      "id": "trigger_enter_armory_oakhaven",
+      "trigger_type": "dialogue",
+      "x": 270,
+      "y": 548,
+      "width": 51,
+      "height": 30,
+      "dialogue_id": "enter_armory_oakhaven",
+      "target_map_id": "armory_interior_oakhaven"
+    },
+    {
+      "id": "trigger_alchemist_shop",
+      "trigger_type": "dialogue",
+      "x": 914,
+      "y": 271,
+      "width": 59,
+      "height": 30,
+      "dialogue_id": "alchemist_shop"
+    },
+    {
+      "id": "trigger_enter_inn_oakhaven",
+      "trigger_type": "dialogue",
+      "x": 197,
+      "y": 254,
+      "width": 52,
+      "height": 27,
+      "dialogue_id": "enter_inn_oakhaven",
+      "target_map_id": "inn_interior_oakhaven"
+    },
+    {
+      "id": "trigger_enter_townhall_oakhaven",
+      "trigger_type": "dialogue",
+      "x": 540,
+      "y": 165,
+      "width": 60,
+      "height": 25,
+      "dialogue_id": "enter_townhall_oakhaven",
+      "target_map_id": "townhall_interior_oakhaven"
+    }
+  ]
+}
