@@ -38,7 +38,7 @@ jobs:
         run: uv run ruff check src tests
 
       - name: Run Pytest suite
-        run: uv run pytest -q
+        run: uv run python -m pytest -q
 
   build-windows:
     name: Build Windows Executable
