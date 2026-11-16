@@ -35,7 +35,13 @@ class WanderingElite:
 class EncounterSystem:
     """Manages wild encounter step thresholds and elite encounters."""
 
-    SAFE_ZONES = {"oakhaven_village", "oakhaven_village_main"}
+    SAFE_ZONES = {
+        "oakhaven_village",
+        "oakhaven_village_main",
+        "shop_interior_oakhaven",
+        "armory_interior_oakhaven",
+        "inn_interior_oakhaven",
+    }
 
     def __init__(self, seed: int | None = None) -> None:
         self.rng = random.Random(seed)

@@ -358,6 +358,11 @@ class DialogueView:
                 char.skill_points += 2
         elif trigger == "OPEN_PARTY_COMPOSITION":
             self.session.transition_to(GameMode.PARTY)
+        elif trigger.startswith("ENTER_MAP:"):
+            parts = trigger.split(":")
+            if len(parts) == 4:
+                _, target_map_id, sx_str, sy_str = parts
+                self.session.pending_map_transition = (target_map_id, float(sx_str), float(sy_str))
 
     def _close_dialogue(self) -> None:
         finished_tree_id = self.current_tree.id if self.current_tree else None

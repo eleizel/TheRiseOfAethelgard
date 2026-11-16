@@ -282,12 +282,66 @@ JACK_TREE_NODES: Final[dict[str, SkillNode]] = {
     ),
 }
 
+RACHEL_TREE_NODES: Final[dict[str, SkillNode]] = {
+    "rachel_mp_1": SkillNode(
+        id="rachel_mp_1",
+        name="Orchid Reservoir",
+        description="Permanently increases Max MP by +25.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(max_mp=25),
+        prerequisites=[],
+        tier=1,
+    ),
+    "rachel_mag_1": SkillNode(
+        id="rachel_mag_1",
+        name="Violet Flame",
+        description="Permanently increases Magic Attack by +6.",
+        cost_sp=1,
+        node_type=NodeType.STAT_BOOST,
+        stat_boost=Stats(magic_attack=6),
+        prerequisites=[],
+        tier=1,
+    ),
+    "rachel_skill_1": SkillNode(
+        id="rachel_skill_1",
+        name="Petal Hex",
+        description="Unlocks Petal Hex: Curses a foe with wilting orchid petals, inflicting Vulnerable.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="petal_hex",
+        prerequisites=["rachel_mp_1"],
+        tier=2,
+    ),
+    "rachel_skill_2": SkillNode(
+        id="rachel_skill_2",
+        name="Wisteria Blaze",
+        description="Unlocks Wisteria Blaze: Engulfs all foes in roaring purple witchfire.",
+        cost_sp=2,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="wisteria_blaze",
+        prerequisites=["rachel_mag_1"],
+        tier=2,
+    ),
+    "rachel_ult": SkillNode(
+        id="rachel_ult",
+        name="Orchid Inferno",
+        description="Unlocks Orchid Inferno: Tempest of blazing amethyst flames across all foes.",
+        cost_sp=3,
+        node_type=NodeType.ABILITY,
+        unlocked_ability_id="orchid_inferno",
+        prerequisites=["rachel_skill_1", "rachel_skill_2"],
+        tier=3,
+    ),
+}
+
 CHARACTER_TREES: Final[dict[str, dict[str, SkillNode]]] = {
     "rowan": ROWAN_TREE_NODES,
     "lyra": LYRA_TREE_NODES,
     "caelen": CAELEN_TREE_NODES,
     "melissa": MELISSA_TREE_NODES,
     "jack": JACK_TREE_NODES,
+    "rachel": RACHEL_TREE_NODES,
 }
 
 

@@ -12,157 +12,172 @@
   },
   "atmosphere": {
     "ambient_light": [
+      225,
       215,
-      220,
-      240
+      200
     ],
     "ambient_particles": "dust",
-    "particle_count": 35
+    "particle_count": 25
   },
   "collisions": [
     {
-      "id": "col_1",
-      "x": 376,
-      "y": 321,
-      "w": 262,
-      "h": 38
-    },
-    {
-      "id": "col_2",
-      "x": 2,
-      "y": 2,
-      "w": 636,
-      "h": 157
-    },
-    {
-      "id": "col_3",
-      "x": 238,
-      "y": 149,
-      "w": 206,
-      "h": 21
-    },
-    {
-      "id": "col_4",
-      "x": 379,
-      "y": 185,
-      "w": 157,
-      "h": 65
-    },
-    {
-      "id": "col_5",
-      "x": 401,
-      "y": 229,
-      "w": 51,
-      "h": 35
-    },
-    {
-      "id": "col_6",
-      "x": 517,
-      "y": 281,
-      "w": 121,
-      "h": 41
-    },
-    {
-      "id": "col_7",
-      "x": 581,
-      "y": 219,
-      "w": 58,
-      "h": 63
-    },
-    {
-      "id": "col_8",
-      "x": 560,
-      "y": 263,
-      "w": 25,
-      "h": 21
-    },
-    {
-      "id": "col_9",
-      "x": 549,
-      "y": 266,
-      "w": 26,
-      "h": 46
-    },
-    {
-      "id": "col_10",
-      "x": 579,
-      "y": 181,
-      "w": 58,
-      "h": 40
-    },
-    {
-      "id": "col_11",
-      "x": 610,
-      "y": 163,
-      "w": 25,
-      "h": 20
-    },
-    {
-      "id": "col_12",
-      "x": 36,
-      "y": 161,
-      "w": 35,
-      "h": 33
-    },
-    {
-      "id": "col_13",
-      "x": 73,
-      "y": 151,
-      "w": 45,
-      "h": 14
-    },
-    {
-      "id": "col_14",
-      "x": 113,
-      "y": 184,
-      "w": 160,
-      "h": 68
-    },
-    {
-      "id": "col_15",
-      "x": 144,
-      "y": 242,
-      "w": 81,
-      "h": 30
-    },
-    {
-      "id": "col_16",
-      "x": 4,
-      "y": 319,
-      "w": 267,
-      "h": 33
-    },
-    {
-      "id": "col_17",
-      "x": 4,
-      "y": 283,
-      "w": 94,
-      "h": 38
-    },
-    {
-      "id": "col_18",
-      "x": 2,
-      "y": 157,
-      "w": 22,
+      "id": "back_wall",
+      "x": 0,
+      "y": 0,
+      "w": 640,
       "h": 124
     },
     {
-      "id": "col_19",
-      "x": 27,
-      "y": 194,
-      "w": 55,
-      "h": 69
+      "id": "left_shelves_and_barrels",
+      "x": 44,
+      "y": 124,
+      "w": 150,
+      "h": 28
+    },
+    {
+      "id": "shop_counter",
+      "x": 198,
+      "y": 114,
+      "w": 254,
+      "h": 38
+    },
+    {
+      "id": "right_shelves_and_sacks",
+      "x": 456,
+      "y": 124,
+      "w": 152,
+      "h": 32
+    },
+    {
+      "id": "left_wall",
+      "x": 0,
+      "y": 124,
+      "w": 26,
+      "h": 194
+    },
+    {
+      "id": "right_wall",
+      "x": 614,
+      "y": 124,
+      "w": 26,
+      "h": 194
+    },
+    {
+      "id": "bottom_wall_left",
+      "x": 0,
+      "y": 318,
+      "w": 274,
+      "h": 42
+    },
+    {
+      "id": "bottom_wall_right",
+      "x": 366,
+      "y": 318,
+      "w": 274,
+      "h": 42
+    },
+    {
+      "id": "crates_left",
+      "x": 22,
+      "y": 160,
+      "w": 46,
+      "h": 60
+    },
+    {
+      "id": "plant_and_sack_bottom_left",
+      "x": 18,
+      "y": 250,
+      "w": 72,
+      "h": 58
+    },
+    {
+      "id": "potion_table_left",
+      "x": 62,
+      "y": 206,
+      "w": 130,
+      "h": 72
+    },
+    {
+      "id": "produce_table_right",
+      "x": 454,
+      "y": 206,
+      "w": 120,
+      "h": 72
+    },
+    {
+      "id": "barrel_and_sacks_bottom_right",
+      "x": 548,
+      "y": 208,
+      "w": 66,
+      "h": 92
     }
   ],
-  "props": [],
+  "props": [
+    {
+      "id": "wall_lantern_left",
+      "prop_type": "light_marker",
+      "x": 32,
+      "y": 86,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 100,
+        "color": [255, 200, 110],
+        "intensity": 0.9,
+        "flicker": true
+      }
+    },
+    {
+      "id": "counter_lantern_left",
+      "prop_type": "light_marker",
+      "x": 240,
+      "y": 56,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 110,
+        "color": [255, 200, 110],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "counter_lantern_right",
+      "prop_type": "light_marker",
+      "x": 418,
+      "y": 56,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 110,
+        "color": [255, 200, 110],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "wall_lantern_right",
+      "prop_type": "light_marker",
+      "x": 606,
+      "y": 86,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 100,
+        "color": [255, 200, 110],
+        "intensity": 0.9,
+        "flicker": true
+      }
+    }
+  ],
   "triggers": [
     {
       "id": "oakhaven_shop_exit",
       "trigger_type": "transition",
       "x": 275,
       "y": 327,
-      "width": 97,
-      "height": 24,
+      "width": 90,
+      "height": 28,
       "target_map_id": "oakhaven_village_main",
       "target_x": 850,
       "target_y": 600
@@ -170,10 +185,10 @@
     {
       "id": "trigger_oakhaven_shop_open",
       "trigger_type": "dialogue",
-      "x": 308,
-      "y": 170,
-      "width": 83,
-      "height": 15,
+      "x": 296,
+      "y": 150,
+      "width": 64,
+      "height": 18,
       "dialogue_id": "oakhaven_shop_open"
     }
   ]

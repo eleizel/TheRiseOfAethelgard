@@ -170,3 +170,33 @@ def test_party_view_keyboard_actions():
     view.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE))
     assert session.current_mode == GameMode.EXPLORATION
     view.on_exit()
+
+
+def test_rachel_witch_character_equipment_and_skill_tree():
+    from src.core.session import GameSession
+    from src.data.abilities import ABILITY_REGISTRY
+    from src.data.items import ITEM_REGISTRY
+
+    session = GameSession(seed=42)
+    session.initialize_new_game()
+
+    rachel = next((m for m in session.party.reserve_members if m.id == "rachel"), None)
+    assert rachel is not None
+    assert rachel.name == "Rachel"
+    assert rachel.class_id == "witch"
+    assert rachel.equipment.weapon == "orchid_wand"
+    assert rachel.equipment.armor == "witchfire_shawl"
+    assert rachel.equipment.accessory == "orchid_hairpin"
+    assert all(
+        item_id in ITEM_REGISTRY
+        for item_id in ("orchid_wand", "amethyst_scepter", "witchfire_shawl", "orchid_hairpin")
+    )
+    assert set(rachel.learned_abilities) >= {"violet_ember", "orchid_mist", "amethyst_ward"}
+
+    tree = session.skill_trees["rachel"]
+    assert tree.character_id == "rachel"
+    rachel.skill_points = 9
+    for node_id in ("rachel_mp_1", "rachel_mag_1", "rachel_skill_1", "rachel_skill_2", "rachel_ult"):
+        assert tree.unlock_node(rachel, node_id) is True
+    assert set(rachel.learned_abilities) >= {"petal_hex", "wisteria_blaze", "orchid_inferno"}
+    assert all(ab_id in ABILITY_REGISTRY for ab_id in rachel.learned_abilities)

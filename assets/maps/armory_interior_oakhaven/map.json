@@ -1,0 +1,223 @@
+{
+  "id": "armory_interior_oakhaven",
+  "name": "Oakhaven Armory",
+  "dimensions": {
+    "width": 640,
+    "height": 360
+  },
+  "tile_size": 32,
+  "background": {
+    "type": "single_composite",
+    "image": "assets/maps/armory_interior_oakhaven/background.png"
+  },
+  "atmosphere": {
+    "ambient_light": [
+      225,
+      210,
+      195
+    ],
+    "ambient_particles": "dust",
+    "particle_count": 20
+  },
+  "collisions": [
+    {
+      "id": "back_wall",
+      "x": 0,
+      "y": 0,
+      "w": 640,
+      "h": 124
+    },
+    {
+      "id": "forge_and_rack",
+      "x": 48,
+      "y": 124,
+      "w": 146,
+      "h": 24
+    },
+    {
+      "id": "anvil_stump",
+      "x": 96,
+      "y": 144,
+      "w": 56,
+      "h": 32
+    },
+    {
+      "id": "armory_counter",
+      "x": 198,
+      "y": 114,
+      "w": 258,
+      "h": 38
+    },
+    {
+      "id": "right_barrel_and_weapons",
+      "x": 464,
+      "y": 124,
+      "w": 142,
+      "h": 32
+    },
+    {
+      "id": "left_wall",
+      "x": 0,
+      "y": 124,
+      "w": 26,
+      "h": 194
+    },
+    {
+      "id": "right_wall",
+      "x": 614,
+      "y": 124,
+      "w": 26,
+      "h": 194
+    },
+    {
+      "id": "bottom_wall_left",
+      "x": 0,
+      "y": 318,
+      "w": 274,
+      "h": 42
+    },
+    {
+      "id": "bottom_wall_right",
+      "x": 366,
+      "y": 318,
+      "w": 274,
+      "h": 42
+    },
+    {
+      "id": "tubs_and_crates_left",
+      "x": 22,
+      "y": 162,
+      "w": 54,
+      "h": 80
+    },
+    {
+      "id": "barrel_bottom_left",
+      "x": 22,
+      "y": 262,
+      "w": 44,
+      "h": 48
+    },
+    {
+      "id": "weapons_table_left",
+      "x": 64,
+      "y": 216,
+      "w": 122,
+      "h": 66
+    },
+    {
+      "id": "armor_table_right",
+      "x": 468,
+      "y": 198,
+      "w": 104,
+      "h": 76
+    },
+    {
+      "id": "crates_right",
+      "x": 564,
+      "y": 174,
+      "w": 50,
+      "h": 68
+    },
+    {
+      "id": "plant_bottom_right",
+      "x": 554,
+      "y": 254,
+      "w": 44,
+      "h": 56
+    }
+  ],
+  "props": [
+    {
+      "id": "forge_fire",
+      "prop_type": "light_marker",
+      "x": 96,
+      "y": 108,
+      "width": 20,
+      "height": 20,
+      "light": {
+        "radius": 140,
+        "color": [255, 165, 80],
+        "intensity": 1.1,
+        "flicker": true
+      }
+    },
+    {
+      "id": "wall_lantern_left",
+      "prop_type": "light_marker",
+      "x": 32,
+      "y": 86,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 100,
+        "color": [255, 200, 110],
+        "intensity": 0.9,
+        "flicker": true
+      }
+    },
+    {
+      "id": "counter_lantern_left",
+      "prop_type": "light_marker",
+      "x": 240,
+      "y": 56,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 110,
+        "color": [255, 200, 110],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "counter_lantern_right",
+      "prop_type": "light_marker",
+      "x": 418,
+      "y": 56,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 110,
+        "color": [255, 200, 110],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "wall_lantern_right",
+      "prop_type": "light_marker",
+      "x": 606,
+      "y": 86,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 100,
+        "color": [255, 200, 110],
+        "intensity": 0.9,
+        "flicker": true
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "id": "oakhaven_armory_exit",
+      "trigger_type": "transition",
+      "x": 275,
+      "y": 327,
+      "width": 90,
+      "height": 28,
+      "target_map_id": "oakhaven_village_main",
+      "target_x": 295,
+      "target_y": 595
+    },
+    {
+      "id": "trigger_oakhaven_armory_open",
+      "trigger_type": "dialogue",
+      "x": 296,
+      "y": 150,
+      "width": 64,
+      "height": 18,
+      "dialogue_id": "oakhaven_armory_open"
+    }
+  ]
+}

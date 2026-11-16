@@ -60,7 +60,7 @@ class GameSession:
     def initialize_new_game(self) -> None:
         """Create new game state starting in Oakhaven with 4 core companions."""
         self.party = Party(gold=250)
-        for char_id in ["rowan", "lyra", "caelen", "melissa", "jack"]:
+        for char_id in ["rowan", "lyra", "caelen", "melissa", "jack", "rachel"]:
             char = create_character(char_id, level=1)
             char.skill_points = 2  # Starting talent points to test skill trees immediately
             self.party.add_character(char)

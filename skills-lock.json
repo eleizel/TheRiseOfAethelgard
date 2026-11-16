@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "skills": {
+    "animated-sprites": {
+      "source": "elithrar/dotfiles",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/animated-sprites/SKILL.md",
+      "computedHash": "bcd3026f1b4a50d1a57419830113d0959007c9f4822dda78d4d63a3867c235db"
+    }
+  }
+}

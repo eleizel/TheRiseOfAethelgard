@@ -50,6 +50,7 @@ class ExplorationView:
         self.player_y: float = float(session.player_y * self.current_map.tile_size + 16)
         self.player_speed: float = 120.0  # Pixels per second
         self.is_moving: bool = False
+        self.walk_animation_time: float = 0.0
         self.facing: str = "down"
         self.time_sec: float = 0.0
         self.transition_cooldown: float = 0.0
@@ -243,6 +244,12 @@ class ExplorationView:
                 self._toast_panel.hide()
 
     def on_enter(self) -> None:
+        pending = getattr(self.session, "pending_map_transition", None)
+        if pending is not None:
+            self.session.pending_map_transition = None
+            map_id, spawn_x, spawn_y = pending
+            self.switch_map(map_id, spawn_x, spawn_y)
+            self.transition_cooldown = 0.8
         if self.music_engine:
             self.music_engine.set_context(MusicContext.EXPLORATION)
         self._build_hud()
@@ -267,6 +274,8 @@ class ExplorationView:
         self._build_hud()
 
     def switch_map(self, map_id: str, spawn_x: float, spawn_y: float) -> None:
+        self.walk_animation_time = 0.0
+        self.is_moving = False
         self.current_map = load_map(map_id)
         self.session.map_id = map_id
         self.player_x = spawn_x
@@ -334,12 +343,10 @@ class ExplorationView:
         if length > 0.0:
             move_x /= length
             move_y /= length
-            self.is_moving = True
-        else:
-            self.is_moving = False
 
         delta_x = move_x * speed * dt
         delta_y = move_y * speed * dt
+        movement_start = (self.player_x, self.player_y)
 
         # Smooth axis-separated collision resolution (enables wall sliding)
         if delta_x != 0.0:
@@ -355,6 +362,17 @@ class ExplorationView:
             box_y = next_y - self.col_h
             if not self.current_map.is_rect_colliding(box_x, box_y, self.col_w, self.col_h):
                 self.player_y = next_y
+
+        # Animate only when collision resolution produced actual movement.
+        moved_distance = math.hypot(
+            self.player_x - movement_start[0],
+            self.player_y - movement_start[1],
+        )
+        self.is_moving = moved_distance > 0.01
+        if self.is_moving:
+            self.walk_animation_time += max(0.0, dt)
+        else:
+            self.walk_animation_time = 0.0
 
         # Update session position & quest proximity/map objectives
         self.session.player_x = int(self.player_x // self.current_map.tile_size)
@@ -431,4 +449,5 @@ class ExplorationView:
             player_moving=self.is_moving,
             player_facing=self.facing,
             time_sec=self.time_sec,
+            player_animation_time=self.walk_animation_time,
         )

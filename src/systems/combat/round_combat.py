@@ -41,6 +41,8 @@ class ActionResult:
     is_crit: bool
     status_applied: str | None
     message: str
+    ability_id: str | None = None
+    target_ids: list[str] | None = None
 
 
 class RoundCombat:
@@ -433,6 +435,8 @@ class RoundCombat:
             is_crit=has_crit,
             status_applied=applied_status,
             message=msg,
+            ability_id=ability.id,
+            target_ids=[target.id for target in targets],
         )
 
     def _resolve_targets(self, action: CombatAction, ability) -> list[Character | Enemy]:

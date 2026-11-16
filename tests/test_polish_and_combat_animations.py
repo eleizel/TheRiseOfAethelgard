@@ -440,24 +440,25 @@ def test_rowan_walk_cycle_sprites_and_matrix():
 
     rowan_dir = Path("assets/sprites/characters/rowan")
 
-    # 1. Strips check (192x64 each, 4 frames of 48x64)
+    # 1. Matrix contract: four direction rows, 64x80 cells, 4 or 8 frames per row.
+    matrix_path = rowan_dir / "rowan_walk_matrix.png"
+    assert matrix_path.exists(), f"Missing {matrix_path}"
+    m_im = Image.open(matrix_path).convert("RGBA")
+    assert m_im.height == 320, f"Matrix must be 320px high (got {m_im.size})"
+    assert m_im.width % 64 == 0, f"Matrix width must be divisible by 64 (got {m_im.size})"
+    frame_count = m_im.width // 64
+    assert frame_count in (4, 8), f"Expected 4 or 8 frames per direction (got {frame_count})"
+    assert m_im.getchannel("A").getextrema() == (0, 255)
+
+    # 2. Directional strips must match the matrix's frame count.
     for direction in ["down", "up", "right", "left"]:
         strip_path = rowan_dir / f"rowan_walk_{direction}.png"
         assert strip_path.exists(), f"Missing {strip_path}"
-        im = Image.open(strip_path)
-        assert im.size == (192, 64), f"{strip_path.name} must be 192x64 (got {im.size})"
-        alpha = im.split()[-1]
-        min_a, max_a = alpha.getextrema()
-        assert min_a == 0, f"{strip_path.name} must have transparent background (min_a == 0)"
-        assert max_a == 255, f"{strip_path.name} must have opaque character content"
-
-    # 2. Matrix check (192x256, 4 rows of 4 cols)
-    matrix_path = rowan_dir / "rowan_walk_matrix.png"
-    assert matrix_path.exists(), f"Missing {matrix_path}"
-    m_im = Image.open(matrix_path)
-    assert m_im.size == (192, 256), f"Matrix must be 192x256 (got {m_im.size})"
-    m_alpha = m_im.split()[-1]
-    assert m_alpha.getextrema() == (0, 255)
+        im = Image.open(strip_path).convert("RGBA")
+        assert im.size == (frame_count * 64, 80), (
+            f"{strip_path.name} must be {frame_count * 64}x80 (got {im.size})"
+        )
+        assert im.getchannel("A").getextrema() == (0, 255)
 
     # 3. HD2D Renderer animation slicing verification
     renderer = HD2DRenderer()
@@ -465,9 +466,11 @@ def test_rowan_walk_cycle_sprites_and_matrix():
     rowan_anims = renderer._character_animations["rowan"]
     assert set(rowan_anims.keys()) == {"down", "up", "right", "left"}
     for d, frames in rowan_anims.items():
-        assert len(frames) == 4, f"Direction {d} must have 4 frames (got {len(frames)})"
+        assert len(frames) == frame_count, (
+            f"Direction {d} must have {frame_count} frames (got {len(frames)})"
+        )
         for idx, f in enumerate(frames):
-            assert f.get_size() == (48, 64), f"Frame {idx} of {d} must be 48x64"
+            assert f.get_size() == (64, 80), f"Frame {idx} of {d} must be 64x80"
 
     # 4. Verification of draw_player_sprite call
     test_surf = pygame.Surface((100, 100), pygame.SRCALPHA)

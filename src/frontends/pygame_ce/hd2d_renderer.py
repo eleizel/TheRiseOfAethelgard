@@ -11,6 +11,51 @@ import pygame
 
 from src.systems.exploration.map_data import LightSource, MapProp, Tilemap, TileType
 
+WALK_REFERENCE_FPS = 6.5
+WALK_REFERENCE_FRAMES = 4
+WALK_DIRECTION_ROWS = ("down", "up", "right", "left")
+
+
+def walk_frame_index(animation_time: float, frame_count: int) -> int:
+    """Return a deterministic walk frame while preserving the legacy cycle period.
+
+    Four-frame sheets retain the legacy 6.5 fps. Eight-frame sheets run at
+    12.5 fps (80ms/frame), matching GIF preview timing and giving a 640ms
+    cycle, within 4% of the legacy ~615ms cycle.
+    """
+    if frame_count <= 0:
+        return 0
+    elapsed = max(0.0, float(animation_time))
+    frame_rate = (
+        WALK_REFERENCE_FPS
+        if frame_count <= WALK_REFERENCE_FRAMES
+        else 12.5 * frame_count / 8
+    )
+    return int(elapsed * frame_rate) % frame_count
+
+
+def slice_walk_animation_sheet(
+    sheet: pygame.Surface,
+) -> dict[str, list[pygame.Surface]] | None:
+    """Slice a 4-direction Rowan sheet with 64x80 cells and 4+ columns."""
+    width, height = sheet.get_size()
+    rows = len(WALK_DIRECTION_ROWS)
+    if width % 64 != 0 or height % rows != 0 or height // rows != 80:
+        return None
+
+    columns = width // 64
+    if columns < WALK_REFERENCE_FRAMES:
+        return None
+
+    animations: dict[str, list[pygame.Surface]] = {}
+    for row_index, direction in enumerate(WALK_DIRECTION_ROWS):
+        frames = []
+        for column_index in range(columns):
+            rect = pygame.Rect(column_index * 64, row_index * 80, 64, 80)
+            frames.append(sheet.subsurface(rect).copy())
+        animations[direction] = frames
+    return animations
+
 
 class HD2DRenderer:
     """Renders layered tilemaps with Y-sorting depth, dynamic point lights, and atmosphere."""
@@ -21,7 +66,7 @@ class HD2DRenderer:
         self._tile_cache: dict[int, pygame.Surface] = {}
         self._prop_cache: dict[str, pygame.Surface] = {}
         self._light_cache: dict[tuple[int, tuple[int, int, int]], pygame.Surface] = {}
-        self._bg_cache: dict[str, pygame.Surface] = {}
+        self._bg_cache: dict[tuple[str, tuple[int, int] | None], pygame.Surface] = {}
         self._vignette: pygame.Surface | None = None
         self._particles: list[dict] = []
         self._character_animations: dict[str, dict[str, list[pygame.Surface]]] = {}
@@ -45,28 +90,22 @@ class HD2DRenderer:
                         sheet = sheet.convert_alpha()
                     except pygame.error:
                         pass
-                sw, sh = sheet.get_size()
-                cols, rows = 4, 4
-                fw, fh = sw // cols, sh // rows
-                row_keys = ["down", "up", "right", "left"]
-                rowan_anims: dict[str, list[pygame.Surface]] = {}
-
-                for r_idx, r_key in enumerate(row_keys):
-                    frames: list[pygame.Surface] = []
-                    for c_idx in range(cols):
-                        rect = pygame.Rect(c_idx * fw, r_idx * fh, fw, fh)
-                        frame_surf = sheet.subsurface(rect).copy()
-                        frames.append(frame_surf)
-                    rowan_anims[r_key] = frames
-
+                rowan_anims = slice_walk_animation_sheet(sheet)
+                if rowan_anims is None:
+                    return
                 self._character_animations["rowan"] = rowan_anims
             except (pygame.error, ValueError):
                 pass
 
-    def _get_background_surface(self, image_path: str) -> pygame.Surface | None:
-        """Load, cache, and convert pre-rendered composite map background surfaces."""
-        if image_path in self._bg_cache:
-            return self._bg_cache[image_path]
+    def _get_background_surface(
+        self,
+        image_path: str,
+        destination_size: tuple[int, int] | None = None,
+    ) -> pygame.Surface | None:
+        """Load and cache a background, optionally scaled to its declared map rectangle."""
+        cache_key = (image_path, destination_size)
+        if cache_key in self._bg_cache:
+            return self._bg_cache[cache_key]
 
         p = Path(image_path)
         if not p.is_absolute():
@@ -75,8 +114,14 @@ class HD2DRenderer:
 
         if p.exists():
             try:
-                loaded = pygame.image.load(str(p)).convert()
-                self._bg_cache[image_path] = loaded
+                loaded = pygame.image.load(str(p)).convert_alpha()
+                if destination_size is not None:
+                    width, height = destination_size
+                    if width <= 0 or height <= 0:
+                        return None
+                    if loaded.get_size() != destination_size:
+                        loaded = pygame.transform.smoothscale(loaded, destination_size)
+                self._bg_cache[cache_key] = loaded
                 return loaded
             except pygame.error:
                 return None
@@ -192,7 +237,7 @@ class HD2DRenderer:
         if rowan_anims and facing in rowan_anims:
             frames = rowan_anims[facing]
             if is_moving:
-                frame_idx = int(time_sec * 6.5) % len(frames)
+                frame_idx = walk_frame_index(time_sec, len(frames))
             else:
                 frame_idx = 0
 
@@ -325,11 +370,15 @@ class HD2DRenderer:
         player_moving: bool,
         player_facing: str,
         time_sec: float,
+        player_animation_time: float | None = None,
     ) -> None:
         """Render complete HD-2D frame with Y-sorting, dynamic lighting, and particles."""
         # 1. Ground / Background Canvas Layer
         if tilemap.background_image:
-            bg_surf = self._get_background_surface(tilemap.background_image)
+            bg_surf = self._get_background_surface(
+                tilemap.background_image,
+                (tilemap.pixel_width, tilemap.pixel_height),
+            )
             if bg_surf:
                 bg_w, bg_h = bg_surf.get_size()
                 src_x = max(0, min(int(cam_x), bg_w - self.width))
@@ -345,13 +394,17 @@ class HD2DRenderer:
                 sl_img = sl.get("image")
                 if not sl_img:
                     continue
-                s_surf = self._get_background_surface(sl_img)
+                # Missing w/h uses the source image's own dimensions.
+                source_surf = self._get_background_surface(sl_img)
+                if not source_surf:
+                    continue
+                sl_w = int(sl.get("w", source_surf.get_width()))
+                sl_h = int(sl.get("h", source_surf.get_height()))
+                s_surf = self._get_background_surface(sl_img, (sl_w, sl_h))
                 if not s_surf:
                     continue
                 sl_x = float(sl.get("x", 0.0))
                 sl_y = float(sl.get("y", 0.0))
-                sl_w = float(sl.get("w", s_surf.get_width()))
-                sl_h = float(sl.get("h", s_surf.get_height()))
                 if (
                     sl_x + sl_w >= cam_x
                     and sl_x <= cam_x + self.width
@@ -405,7 +458,7 @@ class HD2DRenderer:
                     player_screen_y,
                     player_moving,
                     player_facing,
-                    time_sec,
+                    time_sec if player_animation_time is None else player_animation_time,
                 ),
             )
         )

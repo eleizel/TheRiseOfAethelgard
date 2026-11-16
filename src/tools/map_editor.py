@@ -30,6 +30,11 @@ from typing import Any
 
 import pygame
 
+if __package__:
+    from .map_editor_utils import next_unique_id, validate_map_data
+else:
+    from map_editor_utils import next_unique_id, validate_map_data
+
 # Initialize pygame
 pygame.init()
 pygame.font.init()
@@ -167,9 +172,14 @@ class VisualMapEditor:
                     rel = sl.get("image", "")
                     full = self.project_root / rel if rel else None
                     sx, sy = sl.get("x", 0), sl.get("y", 0)
-                    sw, sh = sl.get("w", 640), sl.get("h", 360)
                     if full is not None and full.exists():
                         loaded = pygame.image.load(str(full)).convert_alpha()
+                        # If w/h are omitted, use each source image's native dimensions.
+                        sw = int(sl.get("w", loaded.get_width()))
+                        sh = int(sl.get("h", loaded.get_height()))
+                        if sw <= 0 or sh <= 0:
+                            bg_warning = f"Invalid background slice dimensions: '{rel}'"
+                            continue
                         if loaded.get_size() != (sw, sh):
                             loaded = pygame.transform.smoothscale(loaded, (sw, sh))
                         self.bg_surface.blit(loaded, (sx, sy))
@@ -193,6 +203,15 @@ class VisualMapEditor:
         map_json_path = self.maps_dir / self.map_id / "map.json"
         bak_path = self.maps_dir / self.map_id / "map.json.bak"
 
+        # Validate before making any backup or modifying the source JSON.
+        errors, warnings = validate_map_data(self.map_data)
+        if errors:
+            details = errors[0]
+            if len(errors) > 1:
+                details += f" (+{len(errors) - 1} more)"
+            self.set_status(f"Save blocked: {details}")
+            return False
+
         # Backup current
         if map_json_path.exists():
             with open(map_json_path, encoding="utf-8") as f_in:
@@ -205,13 +224,20 @@ class VisualMapEditor:
 
         # Trigger overlay regeneration
         try:
-            from src.tools.generate_collision_overlay import render_map_debug_overlay
+            if __package__:
+                from .generate_collision_overlay import render_map_debug_overlay
+            else:
+                from generate_collision_overlay import render_map_debug_overlay
             out_overlay = self.maps_dir / self.map_id / "collision_overlay.png"
             render_map_debug_overlay(map_json_path, out_overlay)
         except Exception as e:
             print("Note: overlay update:", e)
 
-        self.set_status("Saved successfully! Backup saved to map.json.bak.")
+        status = "Saved successfully! Backup saved to map.json.bak."
+        if warnings:
+            status += f" Review {len(warnings)} out-of-bounds warning(s)."
+        self.set_status(status)
+        return True
 
     # ---------------- Coordinate Transformations ----------------
     def world_to_screen(self, wx: float, wy: float) -> tuple[int, int]:
@@ -446,17 +472,15 @@ class VisualMapEditor:
 
     def _create_new_element(self, x: int, y: int, w: int, h: int):
         if self.current_mode == MODE_COLLISION:
-            idx = len(self.map_data["collisions"]) + 1
-            item = {"id": f"col_{idx}", "x": x, "y": y, "w": w, "h": h}
+            item = {"id": next_unique_id(self.map_data, "col"), "x": x, "y": y, "w": w, "h": h}
             self.map_data["collisions"].append(item)
             self.selected_item = item
             self.selected_category = "collisions"
             self.set_status(f"Created Collision '{item['id']}' ({w}x{h})")
 
         elif self.current_mode == MODE_DIALOGUE:
-            idx = len(self.map_data["triggers"]) + 1
             item = {
-                "id": f"dlg_trigger_{idx}",
+                "id": next_unique_id(self.map_data, "dlg_trigger"),
                 "trigger_type": "dialogue",
                 "x": x,
                 "y": y,
@@ -470,9 +494,8 @@ class VisualMapEditor:
             self.set_status(f"Created Dialogue Trigger '{item['id']}'")
 
         elif self.current_mode == MODE_TRANSITION:
-            idx = len(self.map_data["triggers"]) + 1
             item = {
-                "id": f"trans_exit_{idx}",
+                "id": next_unique_id(self.map_data, "trans_exit"),
                 "trigger_type": "transition",
                 "x": x,
                 "y": y,
@@ -488,9 +511,8 @@ class VisualMapEditor:
             self.set_status(f"Created Map Transition '{item['id']}'")
 
         elif self.current_mode == MODE_LIGHT:
-            idx = len(self.map_data["props"]) + 1
             item = {
-                "id": f"light_lamp_{idx}",
+                "id": next_unique_id(self.map_data, "light_lamp"),
                 "prop_type": "light_marker",
                 "x": x,
                 "y": y,

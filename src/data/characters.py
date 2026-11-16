@@ -54,6 +54,15 @@ def create_character(char_id: str, level: int = 1) -> Character:
             "class_id": "hunter",
             "equipment": Equipment(weapon="hunter_longbow", armor="shadow_leather", accessory=None),
         },
+        "rachel": {
+            "name": "Rachel",
+            "class_id": "witch",
+            "equipment": Equipment(
+                weapon="orchid_wand",
+                armor="witchfire_shawl",
+                accessory="orchid_hairpin",
+            ),
+        },
     }
 
     if char_id not in catalog:

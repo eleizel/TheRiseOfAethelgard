@@ -191,3 +191,74 @@ def test_oakhaven_village_main_integration():
     encounters = EncounterSystem(seed=42)
     assert "oakhaven_village_main" in encounters.SAFE_ZONES
     assert encounters.record_movement(500.0, "oakhaven_village_main") is False
+
+
+def test_shop_interior_oakhaven_and_dialogue_transition():
+    """Verify shop_interior_oakhaven loads, is safe, and dialogue ENTER_MAP transitions work."""
+    import os
+
+    os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+    os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+    import pygame
+
+    pygame.init()
+    if pygame.display.get_surface() is None:
+        pygame.display.set_mode((640, 360))
+
+    from src.core.fsm import GameMode
+    from src.core.session import GameSession
+    from src.data.dialogues import get_dialogue_tree
+    from src.frontends.pygame_ce.views.dialogue_view import DialogueView
+    from src.frontends.pygame_ce.views.exploration_view import ExplorationView
+    from src.systems.exploration.encounter_system import EncounterSystem
+
+    shop_map = load_map("shop_interior_oakhaven")
+    assert shop_map.id == "shop_interior_oakhaven"
+    assert shop_map.pixel_width == 640
+    assert shop_map.pixel_height == 360
+    assert shop_map.is_rect_colliding(312, 284, 16, 16) is False
+    assert any(t.target_map_id == "oakhaven_village_main" for t in shop_map.triggers)
+    assert get_dialogue_tree("oakhaven_shop_open").id == "oakhaven_shop_open"
+
+    encounters = EncounterSystem(seed=42)
+    assert "shop_interior_oakhaven" in encounters.SAFE_ZONES
+    assert encounters.record_movement(500.0, "shop_interior_oakhaven") is False
+
+    session = GameSession(seed=42)
+    session.initialize_new_game()
+    session.transition_to(GameMode.EXPLORATION)
+    ev = ExplorationView(session)
+    dv = DialogueView(session)
+
+    dv.start_dialogue("enter_shop_oakhaven")
+    assert dv.current_node is not None and len(dv.current_node.choices) == 2
+    dv._execute_action_trigger("ENTER_MAP:shop_interior_oakhaven:320:300")
+    assert session.pending_map_transition == ("shop_interior_oakhaven", 320.0, 300.0)
+
+    ev.on_enter()
+    assert ev.current_map.id == "shop_interior_oakhaven"
+    assert session.map_id == "shop_interior_oakhaven"
+    assert (ev.player_x, ev.player_y) == (320.0, 300.0)
+
+
+def test_armory_and_inn_interiors_integration():
+    """Verify armory and inn interiors load, are safe zones, and link dialogues/exits."""
+    from src.data.dialogues import get_dialogue_tree
+    from src.systems.exploration.encounter_system import EncounterSystem
+
+    encounters = EncounterSystem(seed=42)
+    cases = [
+        ("armory_interior_oakhaven", "enter_armory_oakhaven", "oakhaven_armory_open"),
+        ("inn_interior_oakhaven", "enter_inn_oakhaven", "oakhaven_inn_open"),
+    ]
+    for map_id, enter_dlg, open_dlg in cases:
+        interior = load_map(map_id)
+        assert interior.id == map_id
+        assert interior.pixel_width == 640
+        assert interior.pixel_height == 360
+        assert interior.is_rect_colliding(312, 284, 16, 16) is False
+        assert any(t.target_map_id == "oakhaven_village_main" for t in interior.triggers)
+        assert get_dialogue_tree(enter_dlg).id == enter_dlg
+        assert get_dialogue_tree(open_dlg).id == open_dlg
+        assert map_id in encounters.SAFE_ZONES
+        assert encounters.record_movement(500.0, map_id) is False

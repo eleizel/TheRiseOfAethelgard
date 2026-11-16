@@ -18,7 +18,7 @@ import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 # Default timestamps for Gemini-generated 10s character showcase videos (4 directions)
 DEFAULT_DIRECTIONS: dict[str, tuple[float, float]] = {
@@ -155,13 +155,37 @@ def isolate_character(crop_im: Image.Image) -> Image.Image:
     return rgba
 
 
+def fit_frame_to_canvas(
+    frame: Image.Image,
+    target_size: tuple[int, int],
+) -> Image.Image:
+    """Fit a frame proportionally into a transparent canvas, bottom-aligned.
+
+    This avoids stretching a character when the source crop and target sprite
+    canvas have different aspect ratios.
+    """
+    target_w, target_h = (int(target_size[0]), int(target_size[1]))
+    if target_w <= 0 or target_h <= 0:
+        raise ValueError("Target frame dimensions must be positive")
+
+    rgba = frame.convert("RGBA")
+    fitted = ImageOps.contain(
+        rgba, (target_w, target_h), method=Image.Resampling.LANCZOS
+    )
+    canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+    x = (target_w - fitted.width) // 2
+    y = target_h - fitted.height
+    canvas.alpha_composite(fitted, (x, y))
+    return canvas
+
+
 def extract_directional_spritesheets(
     video_path: str | Path,
     output_dir: str | Path,
     directions: dict[str, tuple[float, float]] | None = None,
     num_frames: int = 4,
     crop_box: tuple[int, int, int, int] | None = DEFAULT_CROP_BOX,
-    target_size: tuple[int, int] | None = (48, 64),
+    target_size: tuple[int, int] | None = (64, 80),
     transparent: bool = True,
 ) -> dict[str, list[Image.Image]]:
     """Extract multi-directional animation frames and generate sprite sheets.
@@ -223,7 +247,7 @@ def extract_directional_spritesheets(
                 frame = isolate_character(frame)
 
             if target_size:
-                frame = frame.resize(target_size, Image.Resampling.LANCZOS)
+                frame = fit_frame_to_canvas(frame, target_size)
 
             frames.append(frame)
 
@@ -282,14 +306,14 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         "--target-w",
         type=int,
-        default=48,
-        help="Target sprite width in pixels (default: 48, set 0 for raw crop)",
+        default=64,
+        help="Target sprite width in pixels (default: 64, set 0 for raw crop)",
     )
     parser.add_argument(
         "--target-h",
         type=int,
-        default=64,
-        help="Target sprite height in pixels (default: 64, set 0 for raw crop)",
+        default=80,
+        help="Target sprite height in pixels (default: 80, set 0 for raw crop)",
     )
 
     args = parser.parse_args(argv)

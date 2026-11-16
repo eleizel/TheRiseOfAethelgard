@@ -1,0 +1,540 @@
+{
+  "id": "oakhaven_village",
+  "name": "Oakhaven Village",
+  "dimensions": {
+    "width": 1280,
+    "height": 720
+  },
+  "tile_size": 32,
+  "background": {
+    "type": "single_composite",
+    "image": "assets/maps/oakhaven_village/background.jpeg"
+  },
+  "atmosphere": {
+    "ambient_light": [
+      215,
+      220,
+      240
+    ],
+    "ambient_particles": "dust",
+    "particle_count": 35
+  },
+  "collisions": [
+    {
+      "id": "lantern_pedestal_1",
+      "x": 230,
+      "y": 300,
+      "w": 31,
+      "h": 24
+    },
+    {
+      "id": "lantern_pedestal_2",
+      "x": 518,
+      "y": 301,
+      "w": 36,
+      "h": 25
+    },
+    {
+      "id": "lantern_pedestal_3",
+      "x": 780,
+      "y": 300,
+      "w": 32,
+      "h": 25
+    },
+    {
+      "id": "lantern_pedestal_4",
+      "x": 1051,
+      "y": 301,
+      "w": 35,
+      "h": 25
+    },
+    {
+      "id": "lantern_pedestal_south",
+      "x": 691,
+      "y": 437,
+      "w": 37,
+      "h": 28
+    },
+    {
+      "id": "col_12",
+      "x": 810,
+      "y": 275,
+      "w": 8,
+      "h": 8
+    },
+    {
+      "id": "col_7",
+      "x": 939,
+      "y": 419,
+      "w": 82,
+      "h": 300
+    },
+    {
+      "id": "col_8",
+      "x": 855,
+      "y": 453,
+      "w": 83,
+      "h": 266
+    },
+    {
+      "id": "col_9",
+      "x": 791,
+      "y": 438,
+      "w": 65,
+      "h": 281
+    },
+    {
+      "id": "col_10",
+      "x": 768,
+      "y": 486,
+      "w": 25,
+      "h": 233
+    },
+    {
+      "id": "col_11",
+      "x": 736,
+      "y": 554,
+      "w": 33,
+      "h": 165
+    },
+    {
+      "id": "col_12",
+      "x": 638,
+      "y": 574,
+      "w": 96,
+      "h": 145
+    },
+    {
+      "id": "col_13",
+      "x": 0,
+      "y": 655,
+      "w": 636,
+      "h": 65
+    },
+    {
+      "id": "col_14",
+      "x": -1,
+      "y": 369,
+      "w": 47,
+      "h": 287
+    },
+    {
+      "id": "col_15",
+      "x": 58,
+      "y": 515,
+      "w": 8,
+      "h": 8
+    },
+    {
+      "id": "col_16",
+      "x": 46,
+      "y": 575,
+      "w": 445,
+      "h": 80
+    },
+    {
+      "id": "col_17",
+      "x": 490,
+      "y": 635,
+      "w": 60,
+      "h": 21
+    },
+    {
+      "id": "col_18",
+      "x": 46,
+      "y": 527,
+      "w": 529,
+      "h": 50
+    },
+    {
+      "id": "col_19",
+      "x": 299,
+      "y": 474,
+      "w": 106,
+      "h": 56
+    },
+    {
+      "id": "col_20",
+      "x": 45,
+      "y": 491,
+      "w": 251,
+      "h": 39
+    },
+    {
+      "id": "col_21",
+      "x": 46,
+      "y": 386,
+      "w": 37,
+      "h": 106
+    },
+    {
+      "id": "col_22",
+      "x": 86,
+      "y": 409,
+      "w": 23,
+      "h": 82
+    },
+    {
+      "id": "col_23",
+      "x": 110,
+      "y": 453,
+      "w": 52,
+      "h": 38
+    },
+    {
+      "id": "col_24",
+      "x": 161,
+      "y": 469,
+      "w": 24,
+      "h": 21
+    },
+    {
+      "id": "col_25",
+      "x": 331,
+      "y": 436,
+      "w": 43,
+      "h": 38
+    },
+    {
+      "id": "col_26",
+      "x": 393,
+      "y": 429,
+      "w": 23,
+      "h": 100
+    },
+    {
+      "id": "col_27",
+      "x": 416,
+      "y": 452,
+      "w": 25,
+      "h": 49
+    },
+    {
+      "id": "col_28",
+      "x": 416,
+      "y": 430,
+      "w": 18,
+      "h": 19
+    },
+    {
+      "id": "col_29",
+      "x": 375,
+      "y": 436,
+      "w": 16,
+      "h": 40
+    },
+    {
+      "id": "col_30",
+      "x": 542,
+      "y": 491,
+      "w": 22,
+      "h": 38
+    },
+    {
+      "id": "col_31",
+      "x": 523,
+      "y": 495,
+      "w": 18,
+      "h": 35
+    },
+    {
+      "id": "col_32",
+      "x": 504,
+      "y": 510,
+      "w": 9,
+      "h": 28
+    },
+    {
+      "id": "col_33",
+      "x": 565,
+      "y": 498,
+      "w": 9,
+      "h": 30
+    },
+    {
+      "id": "col_34",
+      "x": 684,
+      "y": 505,
+      "w": 48,
+      "h": 42
+    },
+    {
+      "id": "col_35",
+      "x": 1114,
+      "y": 425,
+      "w": 165,
+      "h": 293
+    },
+    {
+      "id": "col_36",
+      "x": 1168,
+      "y": 0,
+      "w": 111,
+      "h": 289
+    },
+    {
+      "id": "col_37",
+      "x": 563,
+      "y": 2,
+      "w": 603,
+      "h": 224
+    },
+    {
+      "id": "col_38",
+      "x": 506,
+      "y": 2,
+      "w": 54,
+      "h": 197
+    },
+    {
+      "id": "col_39",
+      "x": 481,
+      "y": 117,
+      "w": 27,
+      "h": 45
+    },
+    {
+      "id": "col_40",
+      "x": 0,
+      "y": -1,
+      "w": 54,
+      "h": 310
+    },
+    {
+      "id": "col_41",
+      "x": 51,
+      "y": -2,
+      "w": 115,
+      "h": 209
+    },
+    {
+      "id": "col_42",
+      "x": 166,
+      "y": 74,
+      "w": 152,
+      "h": 149
+    },
+    {
+      "id": "col_43",
+      "x": 317,
+      "y": 64,
+      "w": 20,
+      "h": 151
+    },
+    {
+      "id": "col_44",
+      "x": 337,
+      "y": 107,
+      "w": 65,
+      "h": 73
+    },
+    {
+      "id": "col_45",
+      "x": 337,
+      "y": 180,
+      "w": 73,
+      "h": 48
+    },
+    {
+      "id": "col_46",
+      "x": 163,
+      "y": 202,
+      "w": 188,
+      "h": 40
+    },
+    {
+      "id": "col_47",
+      "x": 164,
+      "y": 242,
+      "w": 139,
+      "h": 17
+    },
+    {
+      "id": "col_48",
+      "x": 126,
+      "y": 207,
+      "w": 41,
+      "h": 19
+    },
+    {
+      "id": "col_49",
+      "x": 150,
+      "y": 217,
+      "w": 14,
+      "h": 25
+    },
+    {
+      "id": "col_50",
+      "x": 330,
+      "y": 88,
+      "w": 48,
+      "h": 20
+    },
+    {
+      "id": "col_51",
+      "x": 170,
+      "y": 55,
+      "w": 149,
+      "h": 19
+    },
+    {
+      "id": "col_52",
+      "x": 739,
+      "y": 266,
+      "w": 29,
+      "h": 50
+    }
+  ],
+  "props": [
+    {
+      "id": "lantern_cottage_porch",
+      "prop_type": "light_marker",
+      "x": 724,
+      "y": 210,
+      "width": 14,
+      "height": 8,
+      "light": {
+        "radius": 75,
+        "color": [
+          255,
+          195,
+          110
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "lantern_road_1",
+      "prop_type": "light_marker",
+      "x": 237,
+      "y": 265,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.05,
+        "flicker": true
+      }
+    },
+    {
+      "id": "lantern_road_2",
+      "prop_type": "light_marker",
+      "x": 527,
+      "y": 263,
+      "width": 17,
+      "height": 15,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.05,
+        "flicker": true
+      }
+    },
+    {
+      "id": "lantern_road_3",
+      "prop_type": "light_marker",
+      "x": 793,
+      "y": 268,
+      "width": 8,
+      "height": 8,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.05,
+        "flicker": true
+      }
+    },
+    {
+      "id": "lantern_road_4",
+      "prop_type": "light_marker",
+      "x": 1059,
+      "y": 262,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 95,
+        "color": [
+          255,
+          210,
+          130
+        ],
+        "intensity": 1.05,
+        "flicker": true
+      }
+    },
+    {
+      "id": "lantern_road_south",
+      "prop_type": "light_marker",
+      "x": 700,
+      "y": 403,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 90,
+        "color": [
+          255,
+          205,
+          125
+        ],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "id": "exit_briarwood",
+      "trigger_type": "transition",
+      "x": 1021,
+      "y": 666,
+      "width": 100,
+      "height": 54,
+      "target_map_id": "briarwood_edge",
+      "target_x": 315,
+      "target_y": 80
+    },
+    {
+      "id": "dlg_trigger_2",
+      "trigger_type": "dialogue",
+      "x": 664,
+      "y": 243,
+      "width": 60,
+      "height": 22,
+      "dialogue_id": "rowan_house_inspect"
+    },
+    {
+      "id": "dlg_trigger_3",
+      "trigger_type": "dialogue",
+      "x": 728,
+      "y": 258,
+      "width": 50,
+      "height": 64,
+      "dialogue_id": "elder_tomas"
+    },
+    {
+      "id": "exit_oakhaven_village_main",
+      "trigger_type": "transition",
+      "x": 0,
+      "y": 310,
+      "width": 22,
+      "height": 59,
+      "target_map_id": "oakhaven_village_main",
+      "target_x": 1220,
+      "target_y": 360
+    }
+  ]
+}

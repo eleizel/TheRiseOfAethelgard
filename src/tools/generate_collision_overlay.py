@@ -35,12 +35,16 @@ def render_map_debug_overlay(map_json_path: Path, output_image_path: Path):
             img_rel = slice_info.get("image")
             img_full = root_dir / img_rel
             sx, sy = slice_info.get("x", 0), slice_info.get("y", 0)
-            sw, sh = slice_info.get("w", 640), slice_info.get("h", 360)
             if img_full.exists():
                 loaded_slice = Image.open(img_full).convert("RGBA")
+                # Omitted destination dimensions mean native source dimensions.
+                sw = int(slice_info.get("w", loaded_slice.width))
+                sh = int(slice_info.get("h", loaded_slice.height))
+                if sw <= 0 or sh <= 0:
+                    raise ValueError(f"Invalid slice dimensions for '{img_rel}': {sw}x{sh}")
                 if loaded_slice.size != (sw, sh):
                     loaded_slice = loaded_slice.resize((sw, sh), Image.Resampling.LANCZOS)
-                base_img.paste(loaded_slice, (sx, sy))
+                base_img.alpha_composite(loaded_slice, dest=(sx, sy))
 
     # 2. Transparent overlay layers
     overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -171,3 +175,18 @@ if __name__ == "__main__":
     oakhaven_main_json = project_root / "assets/maps/oakhaven_village_main/map.json"
     oakhaven_main_out = project_root / "assets/maps/oakhaven_village_main/collision_overlay.png"
     render_map_debug_overlay(oakhaven_main_json, oakhaven_main_out)
+
+    # 4. Oakhaven General Shop
+    shop_json = project_root / "assets/maps/shop_interior_oakhaven/map.json"
+    shop_out = project_root / "assets/maps/shop_interior_oakhaven/collision_overlay.png"
+    render_map_debug_overlay(shop_json, shop_out)
+
+    # 5. Oakhaven Armory
+    armory_json = project_root / "assets/maps/armory_interior_oakhaven/map.json"
+    armory_out = project_root / "assets/maps/armory_interior_oakhaven/collision_overlay.png"
+    render_map_debug_overlay(armory_json, armory_out)
+
+    # 6. Oakhaven Tavern & Inn
+    inn_json = project_root / "assets/maps/inn_interior_oakhaven/map.json"
+    inn_out = project_root / "assets/maps/inn_interior_oakhaven/collision_overlay.png"
+    render_map_debug_overlay(inn_json, inn_out)

@@ -228,4 +228,37 @@ ITEM_REGISTRY: Final[dict[str, ItemDefinition]] = {
         value=75,
         stat_bonus=Stats(speed=5),
     ),
+    # Rachel (Orchid Witch) Equipment
+    "orchid_wand": ItemDefinition(
+        id="orchid_wand",
+        name="Orchid Wand",
+        description="Ebony wand crowned with a preserved violet orchid that channels witchfire.",
+        item_type=ItemType.WEAPON,
+        value=45,
+        stat_bonus=Stats(magic_attack=14, max_mp=15, speed=1),
+    ),
+    "amethyst_scepter": ItemDefinition(
+        id="amethyst_scepter",
+        name="Amethyst Scepter",
+        description="Gilded scepter ablaze with a perpetual purple witchfire flame.",
+        item_type=ItemType.WEAPON,
+        value=175,
+        stat_bonus=Stats(magic_attack=24, max_mp=30, crit_chance=0.05),
+    ),
+    "witchfire_shawl": ItemDefinition(
+        id="witchfire_shawl",
+        name="Witchfire Shawl",
+        description="Plum silk gown trimmed with gold filigree and orchid embroidery.",
+        item_type=ItemType.ARMOR,
+        value=45,
+        stat_bonus=Stats(defense=4, magic_defense=10, max_mp=15),
+    ),
+    "orchid_hairpin": ItemDefinition(
+        id="orchid_hairpin",
+        name="Orchid Hairpin",
+        description="Golden floral hairpin pulsing with amethyst mana.",
+        item_type=ItemType.ACCESSORY,
+        value=90,
+        stat_bonus=Stats(magic_attack=6, max_mp=15, speed=2),
+    ),
 }

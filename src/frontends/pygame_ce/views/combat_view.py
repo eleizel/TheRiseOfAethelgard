@@ -67,6 +67,7 @@ class CombatView:
         self.execution_timer = 0.0
         self.execution_delay = 0.8  # Seconds between each combat action in round
         self.floating_texts: list[dict] = []
+        self.rachel_projectiles: list[dict[str, float | str]] = []
 
         # Sprite Manager & Procedural Animation States
         self.sprite_manager = EnemySpriteManager()
@@ -360,6 +361,14 @@ class CombatView:
             )
             st.update(dt, is_alive=char.is_alive)
 
+        # Update active spell projectiles in world-space reference coordinates.
+        for projectile in list(self.rachel_projectiles):
+            projectile["elapsed"] = float(projectile["elapsed"]) + max(0.0, dt)
+            if float(projectile["elapsed"]) >= (
+                float(projectile["launch_delay"]) + float(projectile["duration"])
+            ):
+                self.rachel_projectiles.remove(projectile)
+
         # Automatic step pacing during Action Execution
         if self.combat.phase == CombatPhase.ACTION_EXECUTION:
             self.execution_timer += dt
@@ -367,10 +376,22 @@ class CombatView:
                 self.execution_timer = 0.0
                 res = self.combat.step_next_action()
                 if res:
-                    # 1. Trigger attacker lunge animation
+                    # 1. Trigger the actor animation. Violet Ember uses Rachel's
+                    # dedicated casting sequence; other actions keep the normal lunge.
                     attacker_char = next((c for c in self.session.party.active_members if c.name == res.source_name), None)
                     if attacker_char and attacker_char.id in self.party_anim_states:
-                        self.party_anim_states[attacker_char.id].trigger_attack(distance=34.0)
+                        actor_state = self.party_anim_states[attacker_char.id]
+                        if attacker_char.id.lower() == "rachel" and res.ability_id == "violet_ember":
+                            actor_state.trigger_spell(duration=0.8, frame_count=8)
+                            target_ids = res.target_ids or []
+                            target_enemy = next(
+                                (e for e in self.combat.enemies if e.id in target_ids and e.is_alive),
+                                None,
+                            )
+                            if target_enemy is not None:
+                                self._spawn_rachel_violet_projectile(attacker_char, target_enemy)
+                        else:
+                            actor_state.trigger_attack(distance=34.0)
                     else:
                         attacker_enemy = next((e for e in self.combat.enemies if e.name == res.source_name), None)
                         if attacker_enemy:
@@ -461,6 +482,7 @@ class CombatView:
 
         self._draw_enemies(surface)
         self._draw_party(surface)
+        self._draw_rachel_projectiles(surface)
 
         sw_s, sh_s = surface.get_size()
         sx = sw_s / 1280.0
@@ -470,6 +492,76 @@ class CombatView:
             txt_surf = pop_font.render(ft["text"], True, ft["color"])
             txt_surf.set_alpha(ft["alpha"])
             surface.blit(txt_surf, (int(ft["x"] * 2.0 * sx), int(ft["y"] * 2.0 * sy)))
+
+    def _spawn_rachel_violet_projectile(
+        self, caster: Character, target: Enemy
+    ) -> None:
+        """Queue the violet flame to leave Rachel's hand and travel to its target."""
+        party_index = next(
+            (i for i, member in enumerate(self.session.party.active_members) if member.id == caster.id),
+            0,
+        )
+        party_row, party_col = divmod(party_index, 2)
+        caster_x = 915.0 + party_col * 175.0
+        caster_foot_y = 340.0 + party_row * 124.0
+
+        enemy_count = len(self.combat.enemies) if self.combat else 1
+        enemy_index = self.combat.enemies.index(target) if self.combat else 0
+        is_elite = target.tier in (EnemyTier.ELITE, EnemyTier.BOSS)
+        if enemy_count == 1:
+            target_x = 280.0
+            target_foot_y = 472.0 if is_elite else 432.0
+        elif enemy_count == 2:
+            target_x = 200.0 if enemy_index == 0 else 370.0
+            target_foot_y = 362.0 if enemy_index == 0 else 464.0
+        else:
+            target_x = 170.0 + (enemy_index % 2) * 195.0
+            target_foot_y = min(472.0, 336.0 + enemy_index * 64.0)
+
+        self.rachel_projectiles.append(
+            {
+                "elapsed": 0.0,
+                "launch_delay": 0.34,
+                "duration": 0.32,
+                "start_x": caster_x - 54.0,
+                "start_y": caster_foot_y - 102.0,
+                "end_x": target_x + 24.0,
+                "end_y": target_foot_y - 54.0,
+            }
+        )
+
+    def _draw_rachel_projectiles(self, surface: pygame.Surface) -> None:
+        if not self.rachel_projectiles:
+            return
+        screen_w, screen_h = surface.get_size()
+        sx = screen_w / 1280.0
+        sy = screen_h / 720.0
+        pixel_scale = 2.0 * min(sx, sy)
+
+        for projectile in self.rachel_projectiles:
+            flight_elapsed = float(projectile["elapsed"]) - float(projectile["launch_delay"])
+            if flight_elapsed < 0.0:
+                continue
+            duration = max(0.01, float(projectile["duration"]))
+            progress = min(1.0, max(0.0, flight_elapsed / duration))
+            x = float(projectile["start_x"]) + (
+                float(projectile["end_x"]) - float(projectile["start_x"])
+            ) * progress
+            y = float(projectile["start_y"]) + (
+                float(projectile["end_y"]) - float(projectile["start_y"])
+            ) * progress - math.sin(progress * math.pi) * 26.0
+
+            frame_index = min(7, int(progress * 8.0))
+            frame = self.sprite_manager.get_projectile_frame("violet_ember", frame_index)
+            if frame is None:
+                continue
+
+            fw, fh = frame.get_size()
+            dw = max(8, int(round(fw * pixel_scale)))
+            dh = max(8, int(round(fh * pixel_scale)))
+            scaled = frame if (dw, dh) == (fw, fh) else pygame.transform.scale(frame, (dw, dh))
+            dest = (int(x * sx - dw / 2), int(y * sy - dh / 2))
+            surface.blit(scaled, dest)
 
     def _draw_battle_arena(self, surface: pygame.Surface) -> None:
         if self.current_background is not None:

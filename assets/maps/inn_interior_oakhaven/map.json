@@ -1,0 +1,202 @@
+{
+  "id": "inn_interior_oakhaven",
+  "name": "Oakhaven Tavern & Inn",
+  "dimensions": {
+    "width": 640,
+    "height": 360
+  },
+  "tile_size": 32,
+  "background": {
+    "type": "single_composite",
+    "image": "assets/maps/inn_interior_oakhaven/oakhaven_tavern_640x360.png"
+  },
+  "atmosphere": {
+    "ambient_light": [
+      230,
+      205,
+      180
+    ],
+    "ambient_particles": "dust",
+    "particle_count": 25
+  },
+  "collisions": [
+    {
+      "id": "back_wall",
+      "x": 0,
+      "y": 0,
+      "w": 640,
+      "h": 124
+    },
+    {
+      "id": "fireplace_and_barrel",
+      "x": 50,
+      "y": 124,
+      "w": 120,
+      "h": 30
+    },
+    {
+      "id": "bar_counter",
+      "x": 204,
+      "y": 116,
+      "w": 262,
+      "h": 36
+    },
+    {
+      "id": "stairs_and_plant",
+      "x": 500,
+      "y": 124,
+      "w": 116,
+      "h": 38
+    },
+    {
+      "id": "left_wall",
+      "x": 0,
+      "y": 124,
+      "w": 28,
+      "h": 196
+    },
+    {
+      "id": "right_wall",
+      "x": 612,
+      "y": 124,
+      "w": 28,
+      "h": 196
+    },
+    {
+      "id": "bottom_wall_left",
+      "x": 0,
+      "y": 318,
+      "w": 274,
+      "h": 42
+    },
+    {
+      "id": "bottom_wall_right",
+      "x": 366,
+      "y": 318,
+      "w": 274,
+      "h": 42
+    },
+    {
+      "id": "plant_bottom_left",
+      "x": 18,
+      "y": 262,
+      "w": 34,
+      "h": 46
+    },
+    {
+      "id": "barrels_bottom_right",
+      "x": 564,
+      "y": 252,
+      "w": 50,
+      "h": 62
+    },
+    {
+      "id": "table_upper_left",
+      "x": 140,
+      "y": 164,
+      "w": 96,
+      "h": 54
+    },
+    {
+      "id": "table_lower_left",
+      "x": 52,
+      "y": 216,
+      "w": 100,
+      "h": 76
+    },
+    {
+      "id": "table_upper_right",
+      "x": 428,
+      "y": 164,
+      "w": 98,
+      "h": 54
+    },
+    {
+      "id": "table_lower_right",
+      "x": 430,
+      "y": 222,
+      "w": 116,
+      "h": 72
+    }
+  ],
+  "props": [
+    {
+      "id": "hearth_fire",
+      "prop_type": "light_marker",
+      "x": 92,
+      "y": 114,
+      "width": 20,
+      "height": 20,
+      "light": {
+        "radius": 140,
+        "color": [255, 165, 80],
+        "intensity": 1.1,
+        "flicker": true
+      }
+    },
+    {
+      "id": "bar_lantern_left",
+      "prop_type": "light_marker",
+      "x": 240,
+      "y": 42,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 110,
+        "color": [255, 200, 110],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "bar_lantern_right",
+      "prop_type": "light_marker",
+      "x": 418,
+      "y": 42,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 110,
+        "color": [255, 200, 110],
+        "intensity": 1.0,
+        "flicker": true
+      }
+    },
+    {
+      "id": "stairs_lantern",
+      "prop_type": "light_marker",
+      "x": 606,
+      "y": 98,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 100,
+        "color": [255, 200, 110],
+        "intensity": 0.9,
+        "flicker": true
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "id": "oakhaven_inn_exit",
+      "trigger_type": "transition",
+      "x": 275,
+      "y": 327,
+      "width": 90,
+      "height": 28,
+      "target_map_id": "oakhaven_village_main",
+      "target_x": 223,
+      "target_y": 300
+    },
+    {
+      "id": "trigger_oakhaven_inn_open",
+      "trigger_type": "dialogue",
+      "x": 304,
+      "y": 150,
+      "width": 64,
+      "height": 18,
+      "dialogue_id": "oakhaven_inn_open"
+    }
+  ]
+}

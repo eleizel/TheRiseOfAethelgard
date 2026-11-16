@@ -28,9 +28,10 @@ class CombatantAnimState:
 
     phase_offset: float = 0.0
     is_player: bool = False
-    anim_type: str = "idle"  # "idle", "attack", "hurt"
+    anim_type: str = "idle"  # "idle", "attack", "spell", "hurt"
     anim_timer: float = 0.0
     anim_duration: float = 0.0
+    spell_frame_count: int = 8
     flash_timer: float = 0.0
     offset_x: float = 0.0
     offset_y: float = 0.0
@@ -43,6 +44,22 @@ class CombatantAnimState:
         self.anim_timer = duration
         self.anim_duration = duration
         self.lunge_dist = distance
+
+    def trigger_spell(self, duration: float = 0.8, frame_count: int = 8) -> None:
+        """Play a character-specific casting animation once, without changing combat logic."""
+        self.anim_type = "spell"
+        self.anim_timer = max(0.01, duration)
+        self.anim_duration = self.anim_timer
+        self.spell_frame_count = max(1, frame_count)
+        self.offset_x = 0.0
+        self.offset_y = 0.0
+
+    @property
+    def spell_frame_index(self) -> int:
+        if self.anim_type != "spell" or self.anim_duration <= 0.0:
+            return 0
+        progress = 1.0 - self.anim_timer / self.anim_duration
+        return min(self.spell_frame_count - 1, max(0, int(progress * self.spell_frame_count)))
 
     def trigger_hurt(self, duration: float = 0.38, recoil: float = 12.0) -> None:
         self.anim_type = "hurt"
@@ -77,6 +94,10 @@ class CombatantAnimState:
                     direction = -1.0 if self.is_player else 1.0
                     self.offset_x = direction * math.sin(progress * math.pi) * self.lunge_dist
                     self.offset_y = -math.sin(progress * math.pi) * 4.0
+                elif self.anim_type == "spell":
+                    # Subtle upward anticipation; frame art carries the hand/flame pose.
+                    self.offset_x = 0.0
+                    self.offset_y = -math.sin(progress * math.pi) * 2.0
                 elif self.anim_type == "hurt":
                     # Recoil displacement away from hit + rapid horizontal wobble
                     direction = 1.0 if self.is_player else -1.0
@@ -121,6 +142,11 @@ class EnemySpriteManager:
         self._raw_cache: dict[str, pygame.Surface] = {}
         self._scaled_cache: dict[tuple[str, int, int], tuple[pygame.Surface, pygame.Surface]] = {}
         self._portrait_cache: dict[tuple[str, int, int], pygame.Surface] = {}
+        self._action_frame_cache: dict[tuple[str, str, int], pygame.Surface | None] = {}
+        self._action_scaled_cache: dict[
+            tuple[str, str, int, float | None], tuple[pygame.Surface, pygame.Surface]
+        ] = {}
+        self._projectile_frame_cache: dict[tuple[str, int], pygame.Surface | None] = {}
 
     def _resolve_filename(self, sprite_id: str, name: str) -> str | None:
         # 1. Alias lookup
@@ -332,6 +358,52 @@ class EnemySpriteManager:
         self._scaled_cache[cache_key] = pair
         return pair
 
+    def get_character_action_frame(
+        self, char_id: str, action_id: str, frame_index: int
+    ) -> pygame.Surface | None:
+        """Load a transparent per-character action frame, e.g. Rachel's Violet Ember."""
+        cache_key = (char_id.lower(), action_id.lower(), max(0, int(frame_index)))
+        if cache_key in self._action_frame_cache:
+            return self._action_frame_cache[cache_key]
+
+        filename = f"{action_id.lower()}_{max(0, int(frame_index)):02d}.png"
+        path = self.char_sprites_dir / "characters" / char_id.lower() / "attack" / filename
+        if not path.is_file():
+            self._action_frame_cache[cache_key] = None
+            return None
+        try:
+            loaded = pygame.image.load(str(path))
+            if pygame.display.get_surface() is not None:
+                loaded = loaded.convert_alpha()
+            self._action_frame_cache[cache_key] = loaded
+            return loaded
+        except (pygame.error, OSError):
+            self._action_frame_cache[cache_key] = None
+            return None
+
+    def get_projectile_frame(
+        self, effect_id: str, frame_index: int
+    ) -> pygame.Surface | None:
+        """Load a transparent projectile/VFX frame from assets/sprites/effects."""
+        cache_key = (effect_id.lower(), max(0, int(frame_index)))
+        if cache_key in self._projectile_frame_cache:
+            return self._projectile_frame_cache[cache_key]
+
+        filename = f"projectile_{max(0, int(frame_index)):02d}.png"
+        path = self.char_sprites_dir / "effects" / effect_id.lower() / filename
+        if not path.is_file():
+            self._projectile_frame_cache[cache_key] = None
+            return None
+        try:
+            loaded = pygame.image.load(str(path))
+            if pygame.display.get_surface() is not None:
+                loaded = loaded.convert_alpha()
+            self._projectile_frame_cache[cache_key] = loaded
+            return loaded
+        except (pygame.error, OSError):
+            self._projectile_frame_cache[cache_key] = None
+            return None
+
     def draw_party_member(
         self,
         surface: pygame.Surface,
@@ -352,6 +424,28 @@ class EnemySpriteManager:
             max_h=max_h,
             pixel_scale=pixel_scale,
         )
+
+        # Rachel's Violet Ember replaces the static battle pose for this action.
+        if char.id.lower() == "rachel" and anim_state.anim_type == "spell":
+            frame_index = anim_state.spell_frame_index
+            action_key = ("rachel", "violet_ember", frame_index, pixel_scale)
+            action_pair = self._action_scaled_cache.get(action_key)
+            if action_pair is None:
+                raw_action = self.get_character_action_frame("rachel", "violet_ember", frame_index)
+                if raw_action is not None:
+                    ow, oh = raw_action.get_size()
+                    scale = pixel_scale if pixel_scale is not None else min(max_w / ow, max_h / oh)
+                    tw = max(16, int(round(ow * scale)))
+                    th = max(16, int(round(oh * scale)))
+                    action_sprite = raw_action if (tw, th) == (ow, oh) else pygame.transform.scale(
+                        raw_action, (tw, th)
+                    )
+                    action_flash = action_sprite.copy()
+                    action_flash.fill((255, 255, 255, 220), special_flags=pygame.BLEND_RGBA_ADD)
+                    action_pair = (action_sprite, action_flash)
+                    self._action_scaled_cache[action_key] = action_pair
+            if action_pair is not None:
+                base_sprite, flash_sprite = action_pair
 
         sw, sh = base_sprite.get_size()
         if anchor_bottom_center:
