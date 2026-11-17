@@ -65,6 +65,16 @@ ITEM_REGISTRY: Final[dict[str, ItemDefinition]] = {
         revive=True,
         heal_hp=50,
     ),
+    "elixir_of_dawn": ItemDefinition(
+        id="elixir_of_dawn",
+        name="Elixir of Dawn",
+        description="Restores 100 HP, 40 MP, and cleanses negative ailments.",
+        item_type=ItemType.CONSUMABLE,
+        value=120,
+        heal_hp=100,
+        heal_mp=40,
+        cleanse_status=True,
+    ),
     # Weapons
     "iron_broadsword": ItemDefinition(
         id="iron_broadsword",
@@ -73,6 +83,14 @@ ITEM_REGISTRY: Final[dict[str, ItemDefinition]] = {
         item_type=ItemType.WEAPON,
         value=40,
         stat_bonus=Stats(attack=8),
+    ),
+    "sunfire_blade": ItemDefinition(
+        id="sunfire_blade",
+        name="Sunfire Blade",
+        description="A tempered blade glowing with solar embers.",
+        item_type=ItemType.WEAPON,
+        value=180,
+        stat_bonus=Stats(attack=12, magic_attack=4, crit_chance=0.05),
     ),
     "sunwarden_blade": ItemDefinition(
         id="sunwarden_blade",

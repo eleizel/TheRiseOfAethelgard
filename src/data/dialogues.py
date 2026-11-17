@@ -73,6 +73,41 @@ ELDER_TOMAS_NODES: Final[dict[str, DialogueNode]] = {
     ),
 }
 
+ELDER_TOMAS_WHISPERS_NODES: Final[dict[str, DialogueNode]] = {
+    "elder_whispers_1": DialogueNode(
+        id="elder_whispers_1",
+        speaker_name="Elder Tomas",
+        speaker_id="elder_tomas_whispers",
+        text="Captain... the tremors are growing heavier. The wells in the lower district taste of gall and ash.",
+        next_node_id="elder_whispers_2",
+    ),
+    "elder_whispers_2": DialogueNode(
+        id="elder_whispers_2",
+        speaker_name="Elder Tomas",
+        speaker_id="elder_tomas_whispers",
+        text="Whatever you struck down in the Briarwood was merely a sentinel; its roots plunge straight into the world's heart.",
+        next_node_id="elder_whispers_choices",
+    ),
+    "elder_whispers_choices": DialogueNode(
+        id="elder_whispers_choices",
+        speaker_name="Elder Tomas",
+        speaker_id="elder_tomas_whispers",
+        text="Wardens have uncovered a sealed fissure behind the mossy crag. Will you descend?",
+        choices=[
+            DialogueChoice(text="We descend into the dark and cauterize the source.", target_node_id="elder_whispers_accept"),
+            DialogueChoice(text="We need to brief the party first.", target_node_id=None),
+        ],
+    ),
+    "elder_whispers_accept": DialogueNode(
+        id="elder_whispers_accept",
+        speaker_name="Elder Tomas",
+        speaker_id="elder_tomas_whispers",
+        text="May the light guide your steel, Captain.",
+        next_node_id=None,
+        action_trigger="START_QUEST_WHISPERS_IN_THE_ROOTS",
+    ),
+}
+
 TREANT_BOSS_NODES: Final[dict[str, DialogueNode]] = {
     "boss_1": DialogueNode(
         id="boss_1",
@@ -440,6 +475,73 @@ DIALOGUE_REGISTRY: Final[dict[str, DialogueTree]] = {
             ),
         },
         start_node_id="townhall_door_1",
+    ),
+    "elder_tomas_whispers": DialogueTree(
+        id="elder_tomas_whispers",
+        nodes=ELDER_TOMAS_WHISPERS_NODES,
+        start_node_id="elder_whispers_1",
+    ),
+    "elder_tomas_whispers_start": DialogueTree(
+        id="elder_tomas_whispers_start",
+        nodes={
+            "whispers_start_1": DialogueNode(
+                id="whispers_start_1",
+                speaker_name="Rowan",
+                speaker_id="rowan",
+                text="Look behind the mossy crag—that fissure wasn't here before. Cold spore-laden air is surging up from beneath Briarwood.",
+                next_node_id="whispers_start_2",
+            ),
+            "whispers_start_2": DialogueNode(
+                id="whispers_start_2",
+                speaker_name="Lyra",
+                speaker_id="lyra",
+                text="The tremors must be coming from down there. Let's report to Elder Tomas first or prepare before we descend into the Rooted Hollows.",
+                next_node_id=None,
+            ),
+        },
+        start_node_id="whispers_start_1",
+    ),
+    "root_goliath_boss": DialogueTree(
+        id="root_goliath_boss",
+        nodes={
+            "goliath_1": DialogueNode(
+                id="goliath_1",
+                speaker_name="Root Goliath",
+                speaker_id="root_goliath",
+                text="THRRRUUMMM... THE ANCIENT WELLSPRINGS BELONG TO THE DEEP BLIGHT...",
+                next_node_id="goliath_2",
+            ),
+            "goliath_2": DialogueNode(
+                id="goliath_2",
+                speaker_name="Rowan",
+                speaker_id="rowan",
+                text="Stay sharp! Strike with fire and radiant steel—don't let its roots overwhelm us!",
+                next_node_id=None,
+                action_trigger="START_ROOT_GOLIATH_COMBAT",
+            ),
+        },
+        start_node_id="goliath_1",
+    ),
+    "seal_blight_font_dialogue": DialogueTree(
+        id="seal_blight_font_dialogue",
+        nodes={
+            "font_1": DialogueNode(
+                id="font_1",
+                speaker_name="Lyra",
+                speaker_id="lyra",
+                text="The Blight Font is exposed! Rowan, channel the Sunwarden seal into the fissure while the spores are still stunned!",
+                next_node_id="font_2",
+            ),
+            "font_2": DialogueNode(
+                id="font_2",
+                speaker_name="Rowan",
+                speaker_id="rowan",
+                text="By the dawn's ember—be sealed! The pulsing has stopped... the Rooted Hollows are quiet at last.",
+                next_node_id=None,
+                action_trigger="SEAL_ROOT_FONT",
+            ),
+        },
+        start_node_id="font_1",
     ),
 }
 
