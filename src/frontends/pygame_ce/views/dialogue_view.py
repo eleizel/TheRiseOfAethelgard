@@ -33,6 +33,7 @@ class DialogueView:
     _SCRIPTED_COMBAT_GUARDS: dict[str, tuple[str, str]] = {
         "START_BOSS_COMBAT": ("shadow_in_briarwood", "kill_corrupted_treant"),
         "START_SPECIAL_COMBAT": ("briarwood_monolith", "kill_mandragora_matron"),
+        "START_ROOT_GOLIATH_COMBAT": ("whispers_in_the_roots", "defeat_root_guardian"),
     }
     _DEFEATED_ENCOUNTER_DIALOGUES: dict[str, tuple[str, str, str]] = {
         "treant_boss": (
@@ -44,6 +45,11 @@ class DialogueView:
             "briarwood_monolith",
             "kill_mandragora_matron",
             "The ancient monolith stands silent now, its foul energy completely dissipated.",
+        ),
+        "root_goliath_boss": (
+            "whispers_in_the_roots",
+            "defeat_root_guardian",
+            "The Root Goliath lies shattered among the granite roots. The way to the Blight Font is clear.",
         ),
     }
 
@@ -358,6 +364,20 @@ class DialogueView:
                 char.skill_points += 2
         elif trigger == "OPEN_PARTY_COMPOSITION":
             self.session.transition_to(GameMode.PARTY)
+        elif trigger == "START_QUEST_WHISPERS_IN_THE_ROOTS":
+            self.session.quest_manager.start_quest("whispers_in_the_roots")
+        elif trigger == "START_ROOT_GOLIATH_COMBAT":
+            goliath = create_enemy("root_goliath", "root_goliath")
+            self.session.combat = RoundCombat(
+                party=self.session.party,
+                enemies=[goliath],
+                event_bus=self.session.event_bus,
+                seed=self.session.rng.randint(1, 100000),
+            )
+            self.session.transition_to(GameMode.COMBAT)
+        elif trigger == "SEAL_ROOT_FONT":
+            self.session.party.quest_flags["root_font_sealed"] = True
+            self.session.quest_manager.on_flag_set("root_font_sealed")
         elif trigger.startswith("ENTER_MAP:"):
             parts = trigger.split(":")
             if len(parts) == 4:

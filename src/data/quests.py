@@ -100,4 +100,50 @@ QUEST_REGISTRY: Final[dict[str, QuestDefinition]] = {
             items={"bloomweave_vestments": 1},
         ),
     ),
+    "whispers_in_the_roots": QuestDefinition(
+        id="whispers_in_the_roots",
+        title="Whispers in the Roots",
+        category=QuestCategory.MAIN,
+        description=(
+            "Descend into the Rooted Hollows beneath Briarwood and "
+            "neutralize the pulsing Blight font."
+        ),
+        auto_start=False,
+        prereq_quests=("shadow_in_briarwood",),
+        steps=(
+            QuestStep(
+                id="talk_elder_tomas",
+                description="Speak with Elder Tomas in Oakhaven about the seismic tremors.",
+                objective_type=ObjectiveType.TALK_TO_NPC,
+                target_id="elder_tomas_whispers",
+            ),
+            QuestStep(
+                id="reach_rooted_hollows",
+                description="Locate the hidden cavern entrance in Briarwood Verge.",
+                objective_type=ObjectiveType.ENTER_MAP,
+                target_id="rooted_hollows",
+            ),
+            QuestStep(
+                id="defeat_root_guardian",
+                description="Defeat the Root Goliath guarding the subterranean font.",
+                objective_type=ObjectiveType.KILL_ENEMY,
+                target_id="root_goliath",
+                required_count=1,
+            ),
+            QuestStep(
+                id="seal_root_font",
+                description="Interact with the Blight Font to seal it permanently.",
+                objective_type=ObjectiveType.FLAG_SET,
+                target_id="root_font_sealed",
+            ),
+        ),
+        reward=QuestReward(
+            exp=250,
+            gold=300,
+            items={"elixir_of_dawn": 2, "sunfire_blade": 1},
+            flags=("whispers_in_the_roots_completed",),
+        ),
+        unlock_proximity=("briarwood_verge", "root_cave_entrance", 48.0),
+        unlock_dialogue_id="elder_tomas_whispers_start",
+    ),
 }

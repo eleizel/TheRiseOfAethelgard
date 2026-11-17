@@ -119,6 +119,50 @@ ENEMY_TEMPLATES: Final[dict[str, dict]] = {
         "gold_reward": 55,
         "loot_drops": [("healing_poultice", 1.0), ("ancient_bark", 0.80)],
     },
+    "root_crawler": {
+        "name": "Root Crawler",
+        "tier": EnemyTier.MINION,
+        "level": 5,
+        "max_hp": 75,
+        "stats": Stats(
+            max_hp=75,
+            max_mp=25,
+            attack=22,
+            defense=12,
+            magic_attack=10,
+            magic_defense=10,
+            speed=14,
+            crit_chance=0.08,
+        ),
+        "weaknesses": ["FIRE", "HOLY"],
+        "resistances": ["EARTH"],
+        "abilities": ["basic_attack", "briar_thorn"],
+        "exp_reward": 55,
+        "gold_reward": 40,
+        "loot_drops": [("healing_poultice", 0.50)],
+    },
+    "root_goliath": {
+        "name": "Root Goliath",
+        "tier": EnemyTier.BOSS,
+        "level": 6,
+        "max_hp": 450,
+        "stats": Stats(
+            max_hp=450,
+            max_mp=100,
+            attack=34,
+            defense=22,
+            magic_attack=18,
+            magic_defense=16,
+            speed=12,
+            crit_chance=0.08,
+        ),
+        "weaknesses": ["FIRE", "HOLY"],
+        "resistances": ["EARTH", "PHYSICAL"],
+        "abilities": ["root_slam", "spore_burst", "basic_attack"],
+        "exp_reward": 180,
+        "gold_reward": 220,
+        "loot_drops": [("sunfire_blade", 1.0)],
+    },
 }
 
 
@@ -162,9 +206,18 @@ def generate_encounter_for_map(map_id: str, is_elite: bool = False) -> list[Enem
     if is_elite:
         return [create_enemy("corrupted_treant", "treant_boss")]
 
-    if map_id == "briarwood_edge":
+    if map_id in ("briarwood_edge", "briarwood_verge"):
         candidates = ["thornvein_creeper", "bramble_hound", "spore_pod"]
         # Troop of 1 to 3 enemies
+        count = random.choice([1, 2, 2, 3])
+        enemies = []
+        for i in range(count):
+            t_id = random.choice(candidates)
+            enemies.append(create_enemy(t_id, f"enemy_{i + 1}"))
+        return enemies
+
+    if map_id == "rooted_hollows":
+        candidates = ["root_crawler", "thornvein_creeper", "spore_pod"]
         count = random.choice([1, 2, 2, 3])
         enemies = []
         for i in range(count):
