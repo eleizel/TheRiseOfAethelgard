@@ -126,6 +126,7 @@ class EnemySpriteManager:
         "spore_pod": "spore_pod.png",
         "corrupted_spore_pod": "spore_pod.png",
         "mandragora_matron": "mandragora_matron.png",
+        "malignant_belladonna": "malignant_belladonna.png",
     }
 
     def __init__(self, assets_dir: Path | str | None = None) -> None:

@@ -462,9 +462,16 @@ class RoundCombat:
             if ability.scope == TargetScope.SELF:
                 actor = next((e for e in living_enemies if e.id == action.actor_id), None)
                 return [actor] if actor else []
-            elif ability.scope in (TargetScope.SINGLE_ENEMY, TargetScope.ALL_ENEMIES):
+            elif ability.scope == TargetScope.SINGLE_ENEMY:
                 target = next((c for c in living_party if c.id == action.target_id), living_party[0] if living_party else None)
                 return [target] if target else []
+            elif ability.scope == TargetScope.ALL_ENEMIES:
+                return list(living_party)
+            elif ability.scope == TargetScope.SINGLE_ALLY:
+                actor = next((e for e in living_enemies if e.id == action.actor_id), None)
+                return [actor] if actor else []
+            elif ability.scope == TargetScope.ALL_ALLIES:
+                return list(living_enemies)
 
         return []
 

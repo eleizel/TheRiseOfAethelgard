@@ -124,6 +124,34 @@ ENEMY_TEMPLATES: Final[dict[str, dict]] = {
         "loot_drops": [("healing_poultice", 1.0), ("ancient_bark", 0.80)],
         "growth_per_level": Stats(max_hp=22, max_mp=5, attack=3, defense=2, magic_attack=2, magic_defense=2, speed=1, crit_chance=0.003),
     },
+    "malignant_belladonna": {
+        "name": "Malignant Belladonna",
+        "description": (
+            "A colossal nightshade horror warped by the Root Blight in Briarwood Verge. "
+            "Its fanged floral maw breathes intoxicating violet miasma while barbed vines "
+            "lash any Sunwarden foolish enough to tread near its briar-choked grove."
+        ),
+        "tier": EnemyTier.ELITE,
+        "level": 3,
+        "max_hp": 145,
+        "stats": Stats(
+            max_hp=145,
+            max_mp=65,
+            attack=14,
+            defense=11,
+            magic_attack=20,
+            magic_defense=15,
+            speed=12,
+            crit_chance=0.07,
+        ),
+        "weaknesses": ["FIRE", "HOLY"],
+        "resistances": ["EARTH", "DARK"],
+        "abilities": ["nightshade_miasma", "venomous_lash", "withering_pollen", "basic_attack"],
+        "exp_reward": 95,
+        "gold_reward": 65,
+        "loot_drops": [("panacea_herbs", 0.75), ("mana_draught", 0.50)],
+        "growth_per_level": Stats(max_hp=20, max_mp=6, attack=2, defense=2, magic_attack=3, magic_defense=2, speed=1, crit_chance=0.004),
+    },
     "root_crawler": {
         "name": "Root Crawler",
         "tier": EnemyTier.MINION,
@@ -396,6 +424,7 @@ def create_enemy(
         gold_reward=gold_reward,
         loot_drops=list(tmpl["loot_drops"]),
         sprite_id=template_id,
+        description=tmpl.get("description", ""),
     )
 
 
@@ -403,17 +432,22 @@ def generate_encounter_for_map(
     map_id: str,
     is_elite: bool = False,
     party_avg_level: float | None = None,
+    rng: random.Random | None = None,
+    elite_template_id: str | None = None,
 ) -> list[Enemy]:
     """Generate enemy troop suitable for the specified map, scaled within zone level bands."""
+    gen = rng or random
     if is_elite:
-        base_lvl = ENEMY_TEMPLATES["corrupted_treant"]["level"]
-        return [create_enemy("corrupted_treant", "treant_boss", level=scaled_boss_level(base_lvl, party_avg_level))]
+        elite_id = elite_template_id if elite_template_id in ENEMY_TEMPLATES else "corrupted_treant"
+        uid = "treant_boss" if elite_id == "corrupted_treant" else f"{elite_id}_1"
+        base_lvl = ENEMY_TEMPLATES[elite_id]["level"]
+        return [create_enemy(elite_id, uid, level=scaled_boss_level(base_lvl, party_avg_level))]
 
     min_lvl, max_lvl = MAP_LEVEL_BANDS.get(map_id, (1, 4))
 
     if map_id == "briarwood_verge":
-        candidates = ["thornvein_creeper", "bramble_hound", "spore_pod"]
-        weights = [1, 1, 1]
+        candidates = ["thornvein_creeper", "bramble_hound", "spore_pod", "malignant_belladonna"]
+        weights = [4, 4, 4, 1]
     elif map_id == "rooted_hollows":
         candidates = [
             "root_crawler",
@@ -428,12 +462,24 @@ def generate_encounter_for_map(
     else:
         return [create_enemy("thornvein_creeper", "enemy_1")]
 
-    count = random.choice([1, 2, 2, 3])
-    enemies = []
+    count = gen.choice([1, 2, 2, 3])
+    enemies: list[Enemy] = []
+    has_elite = False
     for i in range(count):
-        t_id = random.choices(candidates, weights=weights, k=1)[0]
+        if has_elite:
+            pool = [
+                (cid, w)
+                for cid, w in zip(candidates, weights)
+                if ENEMY_TEMPLATES[cid]["tier"] != EnemyTier.ELITE
+            ]
+            t_id = gen.choices([c for c, _ in pool], weights=[w for _, w in pool], k=1)[0]
+        else:
+            t_id = gen.choices(candidates, weights=weights, k=1)[0]
+            if ENEMY_TEMPLATES[t_id]["tier"] == EnemyTier.ELITE:
+                has_elite = True
+
         enemy_lvl = (
-            compute_scaled_level(party_avg_level, min_lvl, max_lvl)
+            compute_scaled_level(party_avg_level, min_lvl, max_lvl, rng=gen)
             if party_avg_level is not None
             else None
         )

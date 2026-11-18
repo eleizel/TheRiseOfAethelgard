@@ -31,6 +31,7 @@ class Enemy:
     loot_drops: list[tuple[str, float]] = field(default_factory=list)  # (item_id, chance 0.0-1.0)
     statuses: list[ActiveStatus] = field(default_factory=list)
     sprite_id: str = ""
+    description: str = ""
 
     @property
     def is_alive(self) -> bool:
@@ -60,6 +61,7 @@ class Enemy:
             "exp_reward": self.exp_reward,
             "gold_reward": self.gold_reward,
             "sprite_id": self.sprite_id,
+            "description": self.description,
         }
 
     @classmethod
@@ -79,4 +81,5 @@ class Enemy:
             exp_reward=int(data.get("exp_reward", 25)),
             gold_reward=int(data.get("gold_reward", 15)),
             sprite_id=data.get("sprite_id", ""),
+            description=data.get("description", ""),
         )
