@@ -232,9 +232,8 @@ class EnemySpriteManager:
 
         scaled_surf = raw_surf if (tw, th) == (ow, oh) else pygame.transform.scale(raw_surf, (tw, th))
 
-        # Create white hit-flash surface
-        flash_surf = scaled_surf.copy()
-        flash_surf.fill((255, 255, 255, 220), special_flags=pygame.BLEND_RGBA_ADD)
+        # Create red hit-flash surface preserving exact alpha transparency
+        flash_surf = self._build_hit_flash_surface(scaled_surf)
 
         pair = (scaled_surf, flash_surf)
         self._scaled_cache[cache_key] = pair
@@ -361,12 +360,19 @@ class EnemySpriteManager:
         th = max(16, int(round(oh * scale)))
 
         scaled_surf = raw_surf if (tw, th) == (ow, oh) else pygame.transform.scale(raw_surf, (tw, th))
-        flash_surf = scaled_surf.copy()
-        flash_surf.fill((255, 255, 255, 220), special_flags=pygame.BLEND_RGBA_ADD)
+        flash_surf = self._build_hit_flash_surface(scaled_surf)
 
         pair = (scaled_surf, flash_surf)
         self._scaled_cache[cache_key] = pair
         return pair
+
+    @staticmethod
+    def _build_hit_flash_surface(sprite: pygame.Surface) -> pygame.Surface:
+        """Create a red hit-flash surface while keeping transparent pixels at alpha=0."""
+        flash_surf = sprite.copy()
+        flash_surf.fill((255, 95, 95, 255), special_flags=pygame.BLEND_RGBA_MULT)
+        flash_surf.fill((190, 20, 20, 0), special_flags=pygame.BLEND_RGBA_ADD)
+        return flash_surf
 
     def _load_image_surface(self, path: Path) -> pygame.Surface | None:
         try:
@@ -540,8 +546,7 @@ class EnemySpriteManager:
                             if (tw, th) == (ow, oh)
                             else pygame.transform.scale(raw_action, (tw, th))
                         )
-                        action_flash = action_sprite.copy()
-                        action_flash.fill((255, 255, 255, 220), special_flags=pygame.BLEND_RGBA_ADD)
+                        action_flash = self._build_hit_flash_surface(action_sprite)
                         action_pair = (action_sprite, action_flash)
                         self._action_scaled_cache[action_key] = action_pair
                 if action_pair is not None:

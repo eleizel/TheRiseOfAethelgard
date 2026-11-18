@@ -605,6 +605,67 @@ def test_combat_action_banner_fade_and_1_5s_skill_timing():
     assert view._active_action_anim["anim_duration"] == 0.75
 
 
+def test_killed_enemy_stays_visible_until_skill_impact():
+    """Defeated enemies must not fade out before the skill's impact_time."""
+    from src.systems.combat.round_combat import ActionResult
+
+    session = GameSession(seed=42)
+    session.initialize_new_game()
+    enemy = create_enemy("bramble_hound", "hound_ko")
+    combat = RoundCombat(party=session.party, enemies=[enemy], seed=42)
+    session.combat = combat
+
+    view = CombatView(session=session)
+    view.on_enter()
+
+    pre_hp = {id(enemy): enemy.current_hp}
+    enemy.take_damage(9999)
+    assert enemy.is_alive is False
+
+    skill_res = ActionResult(
+        source_name="Rachel",
+        action_name="Wisteria Blaze",
+        target_names=[enemy.name],
+        damage_dealt=[120],
+        healing_dealt=[],
+        is_crit=False,
+        status_applied=None,
+        message="Rachel cast Wisteria Blaze!",
+        ability_id="wisteria_blaze",
+        target_ids=[enemy.id],
+    )
+    view._start_action_presentation(skill_res, pre_enemy_hp=pre_hp)
+
+    # Before impact (0.50s < 0.95s): enemy must stay at full ko_alpha=255 and pre-impact HP
+    for _ in range(10):
+        view.update(0.05)
+    st = view.enemy_anim_states[view._enemy_anim_key(enemy)]
+    assert view._active_action_anim is not None
+    assert view._active_action_anim["impact_triggered"] is False
+    assert st.ko_alpha == 255.0
+    assert view._enemy_visual_hp(enemy) > 0
+
+    # After impact (another 0.60s -> 1.10s > 0.95s): impact fired and KO fade has started
+    for _ in range(12):
+        view.update(0.05)
+    assert view._enemy_visual_hp(enemy) == 0
+    assert st.ko_alpha < 255.0
+
+
+def test_hit_flash_surface_is_red_and_preserves_transparency():
+    """Hit-flash must tint visible pixels red while keeping transparent pixels at alpha=0."""
+    src = pygame.Surface((16, 16), pygame.SRCALPHA)
+    src.fill((0, 0, 0, 0))
+    pygame.draw.rect(src, (80, 140, 180, 255), (4, 4, 8, 8))
+
+    flash = EnemySpriteManager._build_hit_flash_surface(src)
+    assert flash.get_at((0, 0)).a == 0
+    center = flash.get_at((8, 8))
+    assert center.a == 255
+    assert center.r > center.g
+    assert center.r > center.b
+
+
 
 
 

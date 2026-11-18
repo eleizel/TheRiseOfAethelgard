@@ -380,7 +380,7 @@ class CombatView:
                 self._enemy_anim_key(enemy),
                 CombatantAnimState(phase_offset=len(self.enemy_anim_states) * 0.9, is_player=False),
             )
-            st.update(dt, is_alive=enemy.is_alive)
+            st.update(dt, is_alive=self._enemy_visual_hp(enemy) > 0)
 
         for char in self.session.party.active_members:
             st = self.party_anim_states.setdefault(
@@ -402,10 +402,11 @@ class CombatView:
             if self.execution_timer >= self.execution_delay:
                 self.execution_timer = 0.0
                 prev_log = self.combat.combat_log[-1] if self.combat.combat_log else "Round Begin"
+                pre_enemy_hp = {id(e): e.current_hp for e in self.combat.enemies}
                 res = self.combat.step_next_action()
                 if res:
                     self._pending_prev_log = prev_log
-                    self._start_action_presentation(res)
+                    self._start_action_presentation(res, pre_enemy_hp=pre_enemy_hp)
 
         # Update floating texts
         for ft in list(self.floating_texts):
@@ -445,7 +446,18 @@ class CombatView:
             txt_surf.set_alpha(ft["alpha"])
             surface.blit(txt_surf, (int(ft["x"] * 2.0 * sx), int(ft["y"] * 2.0 * sy)))
 
-    def _start_action_presentation(self, res: Any) -> None:
+    def _enemy_visual_hp(self, enemy: Enemy) -> int:
+        """Return pre-impact HP until impact_time so defeated enemies don't vanish early."""
+        state = self._active_action_anim
+        if state and not state.get("impact_triggered", False):
+            pre_hp = state.get("pre_enemy_hp", {})
+            if id(enemy) in pre_hp:
+                return int(pre_hp[id(enemy)])
+        return enemy.current_hp
+
+    def _start_action_presentation(
+        self, res: Any, pre_enemy_hp: dict[int, int] | None = None
+    ) -> None:
         """Initialize the fade-in action banner, 1.5s skill animation window, and delayed impact."""
         is_basic = res.ability_id == "basic_attack" or res.action_name in (
             "Attack",
@@ -468,6 +480,7 @@ class CombatView:
         self._active_action_anim = {
             "res": res,
             "label": res.action_name,
+            "pre_enemy_hp": pre_enemy_hp or {},
             "elapsed": 0.0,
             "fade_in": fade_in,
             "anim_duration": anim_duration,
@@ -930,7 +943,8 @@ class CombatView:
                 anchor_bottom_center=True,
             )
 
-            if enemy.is_alive:
+            visual_hp = self._enemy_visual_hp(enemy)
+            if visual_hp > 0:
                 is_targeted = self._is_enemy_targeted(enemy)
 
                 # Name and HP bar above sprite (clamped below top banner y=62)
@@ -944,7 +958,7 @@ class CombatView:
                 name_y = bar_y - int(22 * sy)
                 surface.blit(name_txt, (name_x, name_y))
 
-                hp_ratio = enemy.current_hp / max(1, enemy.stats.max_hp)
+                hp_ratio = visual_hp / max(1, enemy.stats.max_hp)
                 pygame.draw.rect(surface, (50, 15, 15), (bar_x, bar_y, bar_w, bar_h))
                 pygame.draw.rect(surface, (220, 50, 50), (bar_x, bar_y, int(bar_w * hp_ratio), bar_h))
                 pygame.draw.rect(surface, (80, 30, 30), (bar_x, bar_y, bar_w, bar_h), 1)

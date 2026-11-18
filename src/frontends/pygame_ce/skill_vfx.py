@@ -68,6 +68,60 @@ SKILL_VFX_REGISTRY: Final[dict[str, SkillVFXConfig]] = {
             ),
         ),
     ),
+    "wisteria_blaze": SkillVFXConfig(
+        effect_id="wisteria_blaze",
+        caster_anim="spell",
+        total_duration=1.50,
+        impact_time=0.75,
+        spell_duration=0.80,
+        phases=(
+            VFXPhase(
+                prefix="burn",
+                placement="target_each",
+                start_time=0.20,
+                duration=1.10,
+                frame_count=8,
+                offset=(0.0, -76.0),
+                scale=1.15,
+            ),
+        ),
+    ),
+    "orchid_inferno": SkillVFXConfig(
+        effect_id="orchid_inferno",
+        caster_anim="spell",
+        total_duration=1.50,
+        impact_time=0.75,
+        spell_duration=0.80,
+        phases=(
+            VFXPhase(
+                prefix="inferno",
+                placement="target_group_center",
+                start_time=0.15,
+                duration=1.20,
+                frame_count=8,
+                offset=(0.0, -80.0),
+                scale=1.15,
+            ),
+        ),
+    ),
+    "petal_hex": SkillVFXConfig(
+        effect_id="petal_hex",
+        caster_anim="spell",
+        total_duration=1.50,
+        impact_time=0.75,
+        spell_duration=0.80,
+        phases=(
+            VFXPhase(
+                prefix="hex",
+                placement="target_each",
+                start_time=0.15,
+                duration=1.15,
+                frame_count=8,
+                offset=(0.0, -64.0),
+                scale=1.10,
+            ),
+        ),
+    ),
 }
 
 

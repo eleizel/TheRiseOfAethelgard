@@ -206,3 +206,150 @@ def test_generic_skill_vfx_placements_and_violet_ember():
         assert len(view.active_vfx_instances) == len(party_ids) + 1
     finally:
         pygame.quit()
+
+
+def test_wisteria_blaze_burn_strip_loads_and_targets_each_enemy():
+    import pygame
+
+    from src.core.session import GameSession
+    from src.data.enemies import create_enemy
+    from src.frontends.pygame_ce.views.combat_view import CombatView
+    from src.systems.combat.round_combat import ActionResult, RoundCombat
+
+    pygame.init()
+    try:
+        manager = EnemySpriteManager()
+        assert manager.get_effect_frame_count("wisteria_blaze", "burn") == 8
+        frame = manager.get_projectile_frame("wisteria_blaze", 4, prefix="burn")
+        assert frame is not None
+        assert frame.get_size() == (80, 80)
+
+        session = GameSession(seed=42)
+        session.initialize_new_game()
+        enemies = [
+            create_enemy("bramble_hound", "e1"),
+            create_enemy("spore_pod", "e2"),
+        ]
+        session.combat = RoundCombat(party=session.party, enemies=enemies, seed=42)
+        view = CombatView(session=session)
+        view.on_enter()
+
+        rachel = next(c for c in session.party.active_members if c.id == "rachel")
+        wb_res = ActionResult(
+            source_name=rachel.name,
+            action_name="Wisteria Blaze",
+            target_names=[e.name for e in enemies],
+            damage_dealt=[32, 30],
+            healing_dealt=[],
+            is_crit=False,
+            status_applied="BURN",
+            message="Rachel cast Wisteria Blaze!",
+            ability_id="wisteria_blaze",
+            target_ids=[e.id for e in enemies],
+        )
+        view._trigger_attacker_animation(wb_res)
+        assert len(view.active_vfx_instances) == 2
+        assert all(inst["prefix"] == "burn" for inst in view.active_vfx_instances)
+
+        view.update(0.45)
+        surf = pygame.Surface((1280, 720), pygame.SRCALPHA)
+        view._draw_active_vfx(surf)
+    finally:
+        pygame.quit()
+
+
+def test_orchid_inferno_sheet_loads_and_centers_on_enemy_group():
+    import pygame
+
+    from src.core.session import GameSession
+    from src.data.enemies import create_enemy
+    from src.frontends.pygame_ce.views.combat_view import CombatView
+    from src.systems.combat.round_combat import ActionResult, RoundCombat
+
+    pygame.init()
+    try:
+        manager = EnemySpriteManager()
+        assert manager.get_effect_frame_count("orchid_inferno", "inferno") == 8
+        frame = manager.get_projectile_frame("orchid_inferno", 3, prefix="inferno")
+        assert frame is not None
+        assert frame.get_size() == (160, 160)
+
+        session = GameSession(seed=42)
+        session.initialize_new_game()
+        enemies = [
+            create_enemy("bramble_hound", "e1"),
+            create_enemy("spore_pod", "e2"),
+        ]
+        session.combat = RoundCombat(party=session.party, enemies=enemies, seed=42)
+        view = CombatView(session=session)
+        view.on_enter()
+
+        rachel = next(c for c in session.party.active_members if c.id == "rachel")
+        oi_res = ActionResult(
+            source_name=rachel.name,
+            action_name="Orchid Inferno",
+            target_names=[e.name for e in enemies],
+            damage_dealt=[55, 52],
+            healing_dealt=[],
+            is_crit=False,
+            status_applied="BURN",
+            message="Rachel cast Orchid Inferno!",
+            ability_id="orchid_inferno",
+            target_ids=[e.id for e in enemies],
+        )
+        view._trigger_attacker_animation(oi_res)
+        assert len(view.active_vfx_instances) == 1
+        assert view.active_vfx_instances[0]["prefix"] == "inferno"
+
+        view.update(0.50)
+        surf = pygame.Surface((1280, 720), pygame.SRCALPHA)
+        view._draw_active_vfx(surf)
+    finally:
+        pygame.quit()
+
+
+def test_petal_hex_sheet_loads_and_renders_for_player_and_enemy():
+    import pygame
+
+    from src.core.session import GameSession
+    from src.data.enemies import create_enemy
+    from src.frontends.pygame_ce.views.combat_view import CombatView
+    from src.systems.combat.round_combat import ActionResult, RoundCombat
+
+    pygame.init()
+    try:
+        manager = EnemySpriteManager()
+        assert manager.get_effect_frame_count("petal_hex", "hex") == 8
+        frame = manager.get_projectile_frame("petal_hex", 4, prefix="hex")
+        assert frame is not None
+        assert frame.get_size() == (80, 80)
+
+        session = GameSession(seed=42)
+        session.initialize_new_game()
+        enemy = create_enemy("root_wraith", "wraith_1")
+        session.combat = RoundCombat(party=session.party, enemies=[enemy], seed=42)
+        view = CombatView(session=session)
+        view.on_enter()
+
+        rachel = next(c for c in session.party.active_members if c.id == "rachel")
+        ph_res = ActionResult(
+            source_name=rachel.name,
+            action_name="Petal Hex",
+            target_names=[enemy.name],
+            damage_dealt=[26],
+            healing_dealt=[],
+            is_crit=False,
+            status_applied="VULNERABLE",
+            message="Rachel cast Petal Hex!",
+            ability_id="petal_hex",
+            target_ids=[enemy.id],
+        )
+        view._trigger_attacker_animation(ph_res)
+        assert len(view.active_vfx_instances) == 1
+        assert view.active_vfx_instances[0]["prefix"] == "hex"
+
+        view.update(0.50)
+        surf = pygame.Surface((1280, 720), pygame.SRCALPHA)
+        view._draw_active_vfx(surf)
+    finally:
+        pygame.quit()
