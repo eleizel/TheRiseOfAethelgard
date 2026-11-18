@@ -16,16 +16,6 @@ from src.systems.quests.quest_models import (
 if TYPE_CHECKING:
     from src.entities.party import Party
 
-_MAP_ALIASES: dict[str, str] = {
-    "briarwood_edge": "briarwood_verge",
-}
-
-
-def _normalize_map_id(map_id: str | None) -> str | None:
-    if map_id is None:
-        return None
-    return _MAP_ALIASES.get(map_id, map_id)
-
 
 class QuestManager:
     """Tracks active/completed quests and advances sequential objectives."""
@@ -180,7 +170,6 @@ class QuestManager:
         py: float,
         target_positions: dict[str, tuple[float, float]] | None = None,
     ) -> list[str]:
-        norm_map = _normalize_map_id(map_id)
         triggered_dialogues: list[str] = []
 
         for qid, defn in self.registry.items():
@@ -189,7 +178,7 @@ class QuestManager:
             if qid in self.active_quests or qid in self.completed_quests:
                 continue
             u_map, u_target, u_radius = defn.unlock_proximity
-            if _normalize_map_id(u_map) != norm_map:
+            if u_map != map_id:
                 continue
             pos = target_positions.get(u_target) if target_positions else None
             if pos is None:
@@ -203,12 +192,12 @@ class QuestManager:
             if step is None:
                 continue
             if step.objective_type == ObjectiveType.ENTER_MAP:
-                expected_map = _normalize_map_id(step.map_id or step.target_id)
-                if expected_map == norm_map:
+                expected_map = step.map_id or step.target_id
+                if expected_map == map_id:
                     self._advance_quest(qid)
             elif step.objective_type == ObjectiveType.REACH_PROXIMITY:
-                expected_map = _normalize_map_id(step.map_id)
-                if expected_map is not None and expected_map != norm_map:
+                expected_map = step.map_id
+                if expected_map is not None and expected_map != map_id:
                     continue
                 pos = step.target_pos or (target_positions.get(step.target_id) if target_positions else None)
                 if pos is None:

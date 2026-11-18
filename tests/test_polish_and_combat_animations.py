@@ -99,7 +99,7 @@ def test_south_map_transition_corridor():
     view = ExplorationView(session=session)
     view.switch_map("oakhaven_village", 0, 0)
 
-    exit_trig = next((t for t in view.current_map.triggers if t.trigger_type == "transition" and t.target_map_id in ("briarwood_edge", "briarwood_verge")), None)
+    exit_trig = next((t for t in view.current_map.triggers if t.trigger_type == "transition" and t.target_map_id == "briarwood_verge"), None)
     assert exit_trig is not None
 
     # Step directly inside exit transition trigger zone in Oakhaven
@@ -107,9 +107,9 @@ def test_south_map_transition_corridor():
     view.player_y = exit_trig.y + exit_trig.height / 2.0
     view.update(dt=0.016)
 
-    # Must transition to briarwood_edge / briarwood_verge
-    assert view.current_map.id in ("briarwood_edge", "briarwood_verge")
-    assert session.map_id in ("briarwood_edge", "briarwood_verge")
+    # Must transition to briarwood_verge
+    assert view.current_map.id == "briarwood_verge"
+    assert session.map_id == "briarwood_verge"
 
     # Clear transition cooldown as player navigates through Briarwood
     view.update(dt=1.0)
@@ -379,11 +379,11 @@ def test_combat_background_manager():
     bg_mgr = CombatBackgroundManager(view_width=640, view_height=360)
 
     # Briarwood Verge background resolution via map_id and map_name
-    bg1 = bg_mgr.get_random_background(map_id="briarwood_edge", map_name="Briarwood Verge")
+    bg1 = bg_mgr.get_random_background(map_id="briarwood_verge", map_name="Briarwood Verge")
     assert bg1 is not None
     assert bg1.get_size() == (640, 360)
 
-    bg2 = bg_mgr.get_random_background(map_id="briarwood_edge")
+    bg2 = bg_mgr.get_random_background(map_id="briarwood_verge")
     assert bg2 is not None
     assert bg2.get_size() == (640, 360)
 

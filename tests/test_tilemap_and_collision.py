@@ -19,7 +19,7 @@ def test_oakhaven_map_properties():
 
 def test_briarwood_map_properties():
     tilemap = build_briarwood_map()
-    assert tilemap.id == "briarwood_edge"
+    assert tilemap.id == "briarwood_verge"
     assert tilemap.ambient_particles == "spores"
     assert len(tilemap.props) > 0
 
@@ -28,7 +28,7 @@ def test_map_registry_loader():
     oakhaven = load_map("oakhaven_village")
     assert oakhaven.name == "Oakhaven Village"
 
-    briarwood = load_map("briarwood_edge")
+    briarwood = load_map("briarwood_verge")
     assert briarwood.name == "Briarwood Verge"
 
 
@@ -111,8 +111,8 @@ def test_json_zone_map_briarwood_verge():
 
     from src.frontends.pygame_ce.hd2d_renderer import HD2DRenderer
 
-    briarwood = load_map("briarwood_edge")
-    assert briarwood.id == "briarwood_edge"
+    briarwood = load_map("briarwood_verge")
+    assert briarwood.id == "briarwood_verge"
     assert briarwood.name == "Briarwood Verge"
     assert briarwood.pixel_width == 640
     assert briarwood.pixel_height == 1080

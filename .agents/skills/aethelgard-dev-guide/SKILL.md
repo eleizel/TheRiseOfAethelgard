@@ -249,3 +249,20 @@ To inflict a status back onto an attacker when hit (e.g., *Bramble Mail* inflict
   - Place NPC sprites in `assets/sprites/npcs/*.png`.
   - In `src/tools/map_editor.py`, switch to **`[5] NPC / Sprite Prop`** (key `5`), cycle sprites with `<` / `>` (or `[` / `]`) using the live thumbnail preview, and click/drag on the map to stamp a `props` entry (`prop_type: "npc"`, `sprite`, and optional `solid_rect`).
   - `load_zone_map_from_json()` (`src/systems/exploration/map_data.py`) loads `MapProp.sprite`, and `HD2DRenderer.draw_prop()` (`src/frontends/pygame_ce/hd2d_renderer.py`) renders it Y-sorted with a ground shadow. Pair with a `dialogue` trigger zone in `map.json` for interaction.
+
+---
+
+## 10. Strict Sprite Dimensions
+
+All new sprites **MUST** strictly follow these pixel dimensions (enforced across overworld rendering, `map_editor.py` native prop placement, and `combat_animator.py`):
+
+| Category | Exact Size (W × H) | Notes / Examples |
+| :--- | :--- | :--- |
+| **Child NPC** | `64×64` | `nino_*.png`, `nina_*.png` |
+| **Adult NPC / Playable Character** | `64×80` | `rowan.png`, `rachel.png`, `ciudadano_*`, `guardia_*`, `mago_*`, `noble_*` (walk sheet cells are also `64×80`) |
+| **Large NPC / Large Character** | `80×96` | Tall/bulky humanoids or armored figures between standard (`64×80`) and Elite (`112×112`) |
+| **Normal Enemy (`MINION`)** | `80×80` | `thornvein_creeper.png`, `bramble_hound.png`, `spore_pod.png`, `root_crawler.png` |
+| **Elite Enemy (`ELITE`)** | `112×112` | `mandragora_matron.png`, `malignant_belladonna.png` |
+| **Boss (`BOSS`)** | `128×144` | `root_goliath.png`, `corpse_treant.png` |
+
+- `map_editor.py` stamps NPC/sprite props at their **native image dimensions** without scaling, so exporting sprites at the exact target size guarantees consistent world proportions.

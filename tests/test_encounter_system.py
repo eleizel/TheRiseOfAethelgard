@@ -16,7 +16,7 @@ def test_wild_zone_encounter_triggers_eventually():
     sys = EncounterSystem(seed=12345)
     triggered = False
     for _ in range(100):
-        if sys.record_movement(distance_pixels=50.0, map_id="briarwood_edge"):
+        if sys.record_movement(distance_pixels=50.0, map_id="briarwood_verge"):
             triggered = True
             break
     assert triggered is True

@@ -29,6 +29,8 @@ class SaveMemento:
     map_id: str = "oakhaven_village"
     player_x: int = 10
     player_y: int = 10
+    player_pixel_x: float | None = None
+    player_pixel_y: float | None = None
     party: dict[str, Any] = field(default_factory=dict)
     run_seed: int | None = None
 
@@ -42,6 +44,8 @@ class SaveMemento:
             "map_id": self.map_id,
             "player_x": self.player_x,
             "player_y": self.player_y,
+            "player_pixel_x": self.player_pixel_x,
+            "player_pixel_y": self.player_pixel_y,
             "party": dict(self.party),
             "run_seed": self.run_seed,
         }
@@ -49,6 +53,8 @@ class SaveMemento:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SaveMemento:
         validated = validate_and_migrate_save_payload(data)
+        raw_px = validated.get("player_pixel_x")
+        raw_py = validated.get("player_pixel_y")
         return cls(
             save_version=validated["save_version"],
             slot_id=validated["slot_id"],
@@ -58,6 +64,8 @@ class SaveMemento:
             map_id=validated.get("map_id", "oakhaven_village"),
             player_x=int(validated.get("player_x", 10)),
             player_y=int(validated.get("player_y", 10)),
+            player_pixel_x=float(raw_px) if raw_px is not None else None,
+            player_pixel_y=float(raw_py) if raw_py is not None else None,
             party=dict(validated.get("party", {})),
             run_seed=validated.get("run_seed"),
         )

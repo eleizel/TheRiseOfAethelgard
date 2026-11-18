@@ -49,7 +49,6 @@ class CombatBackgroundManager:
 
         # Also check alias mappings
         aliases = {
-            "briarwood_edge": "briarwood_verge",
             "rooted_hollows": "briarwood_verge",
         }
         if map_id in aliases:

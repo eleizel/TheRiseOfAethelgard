@@ -29,7 +29,7 @@ def test_complete_prologue_narrative_flow():
     assert session.current_mode == GameMode.EXPLORATION
 
     # 3. Rowan enters Briarwood Verge
-    session.map_id = "briarwood_edge"
+    session.map_id = "briarwood_verge"
     session.player_x = 13
     session.player_y = 17
 

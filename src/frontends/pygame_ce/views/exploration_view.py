@@ -250,6 +250,24 @@ class ExplorationView:
             map_id, spawn_x, spawn_y = pending
             self.switch_map(map_id, spawn_x, spawn_y)
             self.transition_cooldown = 0.8
+        elif (
+            self.current_map.id != self.session.map_id
+            or getattr(self.session, "_needs_exploration_sync", False)
+        ):
+            self.session._needs_exploration_sync = False
+            target_map = load_map(self.session.map_id)
+            px = (
+                self.session.player_pixel_x
+                if self.session.player_pixel_x is not None
+                else float(self.session.player_x * target_map.tile_size + 16)
+            )
+            py = (
+                self.session.player_pixel_y
+                if self.session.player_pixel_y is not None
+                else float(self.session.player_y * target_map.tile_size + 16)
+            )
+            self.switch_map(self.session.map_id, px, py)
+            self.transition_cooldown = 0.8
         if self.music_engine:
             self.music_engine.set_context(MusicContext.EXPLORATION)
         self._build_hud()
@@ -282,6 +300,8 @@ class ExplorationView:
         self.session.map_id = map_id
         self.player_x = spawn_x
         self.player_y = spawn_y
+        self.session.player_pixel_x = spawn_x
+        self.session.player_pixel_y = spawn_y
         self.session.player_x = int(spawn_x // self.current_map.tile_size)
         self.session.player_y = int(spawn_y // self.current_map.tile_size)
         self.camera.update(
@@ -377,6 +397,8 @@ class ExplorationView:
             self.walk_animation_time = 0.0
 
         # Update session position & quest proximity/map objectives
+        self.session.player_pixel_x = self.player_x
+        self.session.player_pixel_y = self.player_y
         self.session.player_x = int(self.player_x // self.current_map.tile_size)
         self.session.player_y = int(self.player_y // self.current_map.tile_size)
         trigger_centers = {

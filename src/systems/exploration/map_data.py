@@ -302,7 +302,7 @@ def build_oakhaven_village_map() -> Tilemap:
             y=18 * tile_size + 16,
             width=6 * tile_size,
             height=48,
-            target_map_id="briarwood_edge",
+            target_map_id="briarwood_verge",
             target_x=14 * tile_size,
             target_y=2 * tile_size,
         ),
@@ -429,7 +429,7 @@ def build_briarwood_map() -> Tilemap:
     ]
 
     return Tilemap(
-        id="briarwood_edge",
+        id="briarwood_verge",
         name="Briarwood Verge",
         width_tiles=width,
         height_tiles=height,
@@ -445,7 +445,7 @@ def build_briarwood_map() -> Tilemap:
 
 MAP_REGISTRY = {
     "oakhaven_village": build_oakhaven_village_map,
-    "briarwood_edge": build_briarwood_map,
+    "briarwood_verge": build_briarwood_map,
 }
 
 
@@ -561,12 +561,6 @@ def load_map(map_id: str) -> Tilemap:
     json_path = project_root / "assets" / "maps" / map_id / "map.json"
     if json_path.exists():
         return load_zone_map_from_json(json_path)
-
-    # Check folder name aliases (e.g. briarwood_edge -> briarwood_verge)
-    if map_id in ("briarwood_edge", "briarwood_verge"):
-        alias_path = project_root / "assets" / "maps" / "briarwood_verge" / "map.json"
-        if alias_path.exists():
-            return load_zone_map_from_json(alias_path)
 
     # 2. Fall back to programmatic registry
     if map_id in MAP_REGISTRY:

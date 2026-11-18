@@ -49,6 +49,7 @@ def test_map_editor_npc_prop_creation_and_rendering(tmp_path):
     project_root = Path(__file__).resolve().parent.parent
     editor = VisualMapEditor.__new__(VisualMapEditor)
     editor.project_root = project_root
+    editor._prop_sprite_cache = {}
     editor.available_prop_sprites = editor._discover_prop_sprites()
     editor.selected_prop_sprite_idx = 0
     editor.current_mode = MODE_PROP
@@ -84,6 +85,11 @@ def test_map_editor_npc_prop_creation_and_rendering(tmp_path):
     tilemap = load_zone_map_from_json(map_path)
     assert len(tilemap.props) == 1
     assert tilemap.props[0].sprite == prop_dict["sprite"]
+
+    # Verify native size helper uses actual image dimensions (e.g., 128x144 for root_goliath)
+    goliath_rel = "assets/sprites/npcs/root_goliath.png"
+    if (project_root / goliath_rel).exists():
+        assert editor._get_prop_sprite_native_size(goliath_rel) == (128, 144)
 
     renderer = HD2DRenderer(view_width=320, view_height=240)
     surf = pygame.Surface((320, 240))

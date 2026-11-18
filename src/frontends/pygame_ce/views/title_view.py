@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pygame
+import pygame_gui
 from pygame_gui.core import ObjectID
 from pygame_gui.elements import UIButton, UIImage, UILabel, UIPanel
 
@@ -41,6 +42,8 @@ class TitleView:
         self.options = ["New Game", "Continue", "Toggle Mute", "Quit"]
         self.selected_index = 0
         self.time_sec = 0.0
+        self.load_slot_open = False
+        self.load_slot_index = 0
 
         self.background_image: pygame.Surface | None = None
         self._load_welcome_background()
@@ -55,6 +58,9 @@ class TitleView:
         self._title_logo_img: UIImage | None = None
         self._cursor_img: UIImage | None = None
         self._buttons: list[UIButton] = []
+        self._load_panel: UIPanel | None = None
+        self._load_buttons: list[UIButton] = []
+        self._load_status_label: UILabel | None = None
 
     def _load_welcome_background(self) -> None:
         """Load and smoothscale welcome background art from assets/backgrounds/welcome."""
@@ -207,6 +213,7 @@ class TitleView:
         self._build_ui()
 
     def on_exit(self) -> None:
+        self._close_load_modal()
         for attr in (
             "_title_logo_img",
             "_title_label",
@@ -223,10 +230,121 @@ class TitleView:
         self._buttons.clear()
         self._root_panel = None
 
+    def _open_load_modal(self) -> None:
+        self._close_load_modal()
+        self.load_slot_open = True
+        # Default selection to first occupied slot (or Slot 1 if all empty)
+        self.load_slot_index = 0
+        for idx, slot_num in enumerate((1, 2, 3)):
+            if self.session.save_manager.get_slot_summary(slot_num).exists:
+                self.load_slot_index = idx
+                break
+
+        mgr = self.ui_manager.manager
+        r = self.ui_manager.rect
+        self._load_panel = UIPanel(
+            relative_rect=r(280, 210, 720, 380),
+            starting_height=8,
+            manager=mgr,
+            object_id=ObjectID(class_id="@rpg_panel_gold"),
+        )
+        attach_ornate_corners(self._load_panel, self.ui_manager)
+        UILabel(
+            relative_rect=r(24, 18, 672, 34),
+            text="Select Save Slot to Load",
+            manager=mgr,
+            container=self._load_panel,
+            object_id=ObjectID(class_id="@sub_header_label"),
+        )
+        self._load_buttons.clear()
+        for idx, slot_num in enumerate((1, 2, 3)):
+            summary = self.session.save_manager.get_slot_summary(slot_num)
+            label = (
+                f"Slot {slot_num}: {summary.party_leader_name} (Lv.{summary.party_leader_level}) - {summary.map_id}"
+                if summary.exists
+                else f"Slot {slot_num}: Empty"
+            )
+            is_sel = idx == self.load_slot_index
+            btn = UIButton(
+                relative_rect=r(36, 68 + idx * 58, 648, 48),
+                text=f"> {label}" if is_sel else f"  {label}",
+                manager=mgr,
+                container=self._load_panel,
+                object_id=ObjectID(class_id="@rpg_button_selected" if is_sel else "@rpg_button"),
+            )
+            self._load_buttons.append(btn)
+
+        back_sel = self.load_slot_index == 3
+        back_btn = UIButton(
+            relative_rect=r(36, 250, 648, 46),
+            text="> Back" if back_sel else "  Back",
+            manager=mgr,
+            container=self._load_panel,
+            object_id=ObjectID(class_id="@rpg_button_selected" if back_sel else "@rpg_button"),
+        )
+        self._load_buttons.append(back_btn)
+
+        self._load_status_label = UILabel(
+            relative_rect=r(36, 316, 648, 32),
+            text="[W/S] Select Slot   [ENTER] Load   [ESC] Cancel",
+            manager=mgr,
+            container=self._load_panel,
+            object_id=ObjectID(class_id="@muted_label"),
+        )
+
+    def _close_load_modal(self) -> None:
+        self.load_slot_open = False
+        if self._load_panel is not None:
+            self._load_panel.kill()
+            self._load_panel = None
+        self._load_buttons.clear()
+        self._load_status_label = None
+
+    def _refresh_load_selection(self) -> None:
+        for idx, btn in enumerate(self._load_buttons):
+            is_sel = idx == self.load_slot_index
+            raw = btn.text.lstrip("> ").strip()
+            btn.set_text(f"> {raw}" if is_sel else f"  {raw}")
+            set_button_selected(btn, is_sel)
+
+    def _confirm_load_slot(self) -> None:
+        if self.load_slot_index >= 3:
+            self._close_load_modal()
+            return
+        slot_num = self.load_slot_index + 1
+        if self.session.load_game(slot_id=slot_num):
+            self._close_load_modal()
+            self.session.transition_to(GameMode.EXPLORATION)
+        elif self._load_status_label is not None:
+            self._load_status_label.set_text(f"Slot {slot_num} is empty.")
+
     def on_resize(self, width: int, height: int) -> None:
+        was_load_open = self.load_slot_open
         self._build_ui()
+        if was_load_open:
+            self._open_load_modal()
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        if self.load_slot_open:
+            if event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_UP, pygame.K_w):
+                    self.load_slot_index = (self.load_slot_index - 1) % 4
+                    self._refresh_load_selection()
+                elif event.key in (pygame.K_DOWN, pygame.K_s):
+                    self.load_slot_index = (self.load_slot_index + 1) % 4
+                    self._refresh_load_selection()
+                elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    self._confirm_load_slot()
+                elif event.key in (pygame.K_ESCAPE, pygame.K_BACKSPACE):
+                    self._close_load_modal()
+            elif event.type == pygame_gui.UI_BUTTON_PRESSED:
+                for idx, btn in enumerate(self._load_buttons):
+                    if event.ui_element == btn:
+                        self.load_slot_index = idx
+                        self._confirm_load_slot()
+                        return
+            return
+
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_UP, pygame.K_w):
                 self.selected_index = (self.selected_index - 1) % len(self.options)
@@ -238,6 +356,13 @@ class TitleView:
                 self._choose_option()
             elif event.key == pygame.K_m and self.music_engine:
                 self.music_engine.toggle_mute()
+        elif event.type == pygame_gui.UI_BUTTON_PRESSED:
+            for idx, btn in enumerate(self._buttons):
+                if event.ui_element == btn:
+                    self.selected_index = idx
+                    self._refresh_button_selection()
+                    self._choose_option()
+                    return
 
     def _choose_option(self) -> None:
         choice = self.options[self.selected_index]
@@ -246,13 +371,7 @@ class TitleView:
             self.session.pending_dialogue_id = "prologue_intro"
             self.session.transition_to(GameMode.DIALOGUE)
         elif choice == "Continue":
-            if self.session.save_manager.load_game(slot_id=1):
-                self.session.load_game(slot_id=1)
-                self.session.transition_to(GameMode.EXPLORATION)
-            else:
-                self.session.initialize_new_game()
-                self.session.pending_dialogue_id = "prologue_intro"
-                self.session.transition_to(GameMode.DIALOGUE)
+            self._open_load_modal()
         elif choice == "Toggle Mute":
             if self.music_engine:
                 self.music_engine.toggle_mute()

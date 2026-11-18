@@ -37,6 +37,9 @@ class GameSession:
         self.map_id = "oakhaven_village"
         self.player_x = 10
         self.player_y = 10
+        self.player_pixel_x: float | None = None
+        self.player_pixel_y: float | None = None
+        self._needs_exploration_sync: bool = False
         self.play_time_seconds = 0.0
         self.combat: Any = None  # Populated when entering COMBAT mode
 
@@ -106,6 +109,9 @@ class GameSession:
         self.map_id = "oakhaven_village"
         self.player_x = 10
         self.player_y = 10
+        self.player_pixel_x = None
+        self.player_pixel_y = None
+        self._needs_exploration_sync = True
         self.play_time_seconds = 0.0
         self.quest_manager = QuestManager(event_bus=self.event_bus, party=self.party)
         self.quest_manager.initialize_auto_quests()
@@ -125,6 +131,8 @@ class GameSession:
             map_id=self.map_id,
             player_x=self.player_x,
             player_y=self.player_y,
+            player_pixel_x=self.player_pixel_x,
+            player_pixel_y=self.player_pixel_y,
             party=party_dict,
             run_seed=self.seed,
         )
@@ -149,6 +157,9 @@ class GameSession:
         self.map_id = memento.map_id
         self.player_x = memento.player_x
         self.player_y = memento.player_y
+        self.player_pixel_x = memento.player_pixel_x
+        self.player_pixel_y = memento.player_pixel_y
+        self._needs_exploration_sync = True
         self.play_time_seconds = memento.play_time_seconds
         self.seed = memento.run_seed or self.seed
         self.rng = random.Random(self.seed)

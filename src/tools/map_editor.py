@@ -159,6 +159,23 @@ class VisualMapEditor:
         except pygame.error:
             return None
 
+    def _get_prop_sprite_native_size(self, sprite_rel: str | None = None) -> tuple[int, int]:
+        if sprite_rel is None:
+            if not self.available_prop_sprites:
+                return 64, 80
+            sprite_rel = self.available_prop_sprites[self.selected_prop_sprite_idx]
+        surf = self._get_prop_sprite_surface(sprite_rel)
+        if surf is not None:
+            return surf.get_size()
+        full = self.project_root / sprite_rel
+        if full.exists():
+            try:
+                loaded = pygame.image.load(str(full))
+                return loaded.get_size()
+            except pygame.error:
+                pass
+        return 64, 80
+
     def _cycle_prop_sprite(self, delta: int) -> None:
         if not self.available_prop_sprites:
             self.set_status("No NPC/prop sprites found in assets/sprites/npcs.")
@@ -471,9 +488,10 @@ class VisualMapEditor:
             if self.is_drawing_rect and self.drag_start_world and self.current_drag_rect:
                 self.is_drawing_rect = False
                 rx, ry, rw, rh = self.current_drag_rect
-                # Require min 8x8 size (single click in MODE_PROP stamps 64x80 NPC size)
+                # Require min 8x8 size (single click in MODE_PROP stamps native sprite size)
                 if self.current_mode == MODE_PROP and (rw < 8 or rh < 8):
-                    self._create_new_element(rx, ry, 64, 80)
+                    nat_w, nat_h = self._get_prop_sprite_native_size()
+                    self._create_new_element(rx, ry, nat_w, nat_h)
                 elif rw >= 8 and rh >= 8:
                     self._create_new_element(rx, ry, rw, rh)
                 self.drag_start_world = None
@@ -546,7 +564,7 @@ class VisualMapEditor:
                 "y": y,
                 "width": w,
                 "height": h,
-                "target_map_id": "briarwood_edge",
+                "target_map_id": "briarwood_verge",
                 "target_x": 320,
                 "target_y": 64,
             }
@@ -588,7 +606,7 @@ class VisualMapEditor:
                 "y": y,
                 "width": w,
                 "height": h,
-                "solid_rect": [16, max(0, h - 22), max(16, w - 32), 20],
+                "solid_rect": [max(8, w // 4), max(0, h - 22), max(16, w // 2), 20],
             }
             if sprite_rel:
                 item["sprite"] = sprite_rel
@@ -734,9 +752,15 @@ class VisualMapEditor:
                 if v.lower() in ("true", "1", "yes"):
                     w = int(self.selected_item.get("width", 64))
                     h = int(self.selected_item.get("height", 80))
-                    self.selected_item["solid_rect"] = [16, max(0, h - 22), max(16, w - 32), 20]
+                    self.selected_item["solid_rect"] = [max(8, w // 4), max(0, h - 22), max(16, w // 2), 20]
                 else:
                     self.selected_item.pop("solid_rect", None)
+            elif f == "sprite":
+                self.selected_item[f] = v
+                if v:
+                    nat_w, nat_h = self._get_prop_sprite_native_size(v)
+                    self.selected_item["width"] = nat_w
+                    self.selected_item["height"] = nat_h
             else:
                 self.selected_item[f] = v
             self.set_status(f"Updated {f} -> {v}")

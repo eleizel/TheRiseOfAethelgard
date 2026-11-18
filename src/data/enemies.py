@@ -174,7 +174,6 @@ ENEMY_TEMPLATES: Final[dict[str, dict]] = {
 
 
 MAP_LEVEL_BANDS: Final[dict[str, tuple[int, int]]] = {
-    "briarwood_edge": (1, 4),
     "briarwood_verge": (1, 4),
     "rooted_hollows": (4, 8),
 }
@@ -274,7 +273,7 @@ def generate_encounter_for_map(
 
     min_lvl, max_lvl = MAP_LEVEL_BANDS.get(map_id, (1, 4))
 
-    if map_id in ("briarwood_edge", "briarwood_verge"):
+    if map_id == "briarwood_verge":
         candidates = ["thornvein_creeper", "bramble_hound", "spore_pod"]
     elif map_id == "rooted_hollows":
         candidates = ["root_crawler", "thornvein_creeper", "spore_pod"]
