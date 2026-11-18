@@ -146,7 +146,7 @@ class EnemySpriteManager:
         self._action_scaled_cache: dict[
             tuple[str, str, int, float | None], tuple[pygame.Surface, pygame.Surface]
         ] = {}
-        self._projectile_frame_cache: dict[tuple[str, int], pygame.Surface | None] = {}
+        self._projectile_frame_cache: dict[tuple[str, str, int], pygame.Surface | None] = {}
 
     def _resolve_filename(self, sprite_id: str, name: str) -> str | None:
         # 1. Alias lookup
@@ -382,14 +382,15 @@ class EnemySpriteManager:
             return None
 
     def get_projectile_frame(
-        self, effect_id: str, frame_index: int
+        self, effect_id: str, frame_index: int, prefix: str = "projectile"
     ) -> pygame.Surface | None:
         """Load a transparent projectile/VFX frame from assets/sprites/effects."""
-        cache_key = (effect_id.lower(), max(0, int(frame_index)))
+        clean_prefix = prefix.lower()
+        cache_key = (effect_id.lower(), clean_prefix, max(0, int(frame_index)))
         if cache_key in self._projectile_frame_cache:
             return self._projectile_frame_cache[cache_key]
 
-        filename = f"projectile_{max(0, int(frame_index)):02d}.png"
+        filename = f"{clean_prefix}_{max(0, int(frame_index)):02d}.png"
         path = self.char_sprites_dir / "effects" / effect_id.lower() / filename
         if not path.is_file():
             self._projectile_frame_cache[cache_key] = None

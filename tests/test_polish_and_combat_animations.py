@@ -527,6 +527,84 @@ def test_combat_duplicate_enemy_targeting_and_ko_fade():
     assert st_h2.ko_alpha == 255.0
 
 
+def test_combat_action_banner_fade_and_1_5s_skill_timing():
+    """Skills fade in, run a 1.5s animation with mid-animation impact, and fade out at the end."""
+    from src.systems.combat.round_combat import ActionResult
+
+    session = GameSession(seed=42)
+    session.initialize_new_game()
+    enemy = create_enemy("bramble_hound", "hound_1")
+    combat = RoundCombat(party=session.party, enemies=[enemy], seed=42)
+    session.combat = combat
+
+    view = CombatView(session=session)
+    view.on_enter()
+
+    skill_res = ActionResult(
+        source_name="Rowan",
+        action_name="Shield Slam",
+        target_names=[enemy.name],
+        damage_dealt=[28],
+        healing_dealt=[],
+        is_crit=False,
+        status_applied=None,
+        message="Rowan used Shield Slam!",
+        ability_id="shield_slam",
+        target_ids=[enemy.id],
+    )
+    view._start_action_presentation(skill_res)
+    assert view._active_action_anim is not None
+    assert view._active_action_anim["anim_duration"] == 1.50
+    assert view._get_action_banner_alpha() == 0
+    assert not view.floating_texts
+
+    # Mid fade-in
+    view._update_action_presentation(0.10)
+    assert 0 < view._get_action_banner_alpha() < 255
+
+    # Fade-in complete, full alpha during animation, impact not yet triggered
+    view._update_action_presentation(0.15)
+    assert view._get_action_banner_alpha() == 255
+    assert view._active_action_anim["anim_started"] is True
+    assert not view.floating_texts
+
+    # Render banner cleanly at 1280x720
+    surf = pygame.Surface((1280, 720), pygame.SRCALPHA)
+    view._draw_action_banner(surf)
+
+    # Impact triggers halfway through the 1.5s animation
+    view._update_action_presentation(0.80)
+    assert view._active_action_anim["impact_triggered"] is True
+    assert len(view.floating_texts) == 1
+    assert view.floating_texts[0]["text"] == "28"
+
+    # Near the end of the 1.5s animation, banner fades out
+    view._update_action_presentation(0.50)
+    assert 0 < view._get_action_banner_alpha() < 255
+
+    # Exact end of animation clears the presentation
+    view._update_action_presentation(0.20)
+    assert view._active_action_anim is None
+    assert view._get_action_banner_alpha() == 0
+
+    # Basic Attack uses snappier 0.75s window
+    atk_res = ActionResult(
+        source_name="Rowan",
+        action_name="Attack",
+        target_names=[enemy.name],
+        damage_dealt=[14],
+        healing_dealt=[],
+        is_crit=False,
+        status_applied=None,
+        message="Rowan attacked!",
+        ability_id="basic_attack",
+        target_ids=[enemy.id],
+    )
+    view._start_action_presentation(atk_res)
+    assert view._active_action_anim is not None
+    assert view._active_action_anim["anim_duration"] == 0.75
+
+
 
 
 

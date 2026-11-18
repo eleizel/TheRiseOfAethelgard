@@ -967,17 +967,6 @@
   ],
   "triggers": [
     {
-      "id": "exit_to_briarwood",
-      "trigger_type": "transition",
-      "x": 1068,
-      "y": 99,
-      "width": 54,
-      "height": 42,
-      "target_map_id": "briarwood_edge",
-      "target_x": 213,
-      "target_y": 915
-    },
-    {
       "id": "root_goliath_encounter",
       "trigger_type": "dialogue",
       "x": 489,
@@ -994,6 +983,17 @@
       "width": 72,
       "height": 62,
       "dialogue_id": "seal_blight_font_dialogue"
+    },
+    {
+      "id": "exit_to_briarwood_verge",
+      "trigger_type": "transition",
+      "x": 1056,
+      "y": 96,
+      "width": 64,
+      "height": 32,
+      "target_map_id": "briarwood_verge",
+      "target_x": 220,
+      "target_y": 930
     }
   ]
 }

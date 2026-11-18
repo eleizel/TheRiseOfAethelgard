@@ -65,9 +65,11 @@ class CombatView:
 
         self.time_sec = 0.0
         self.execution_timer = 0.0
-        self.execution_delay = 0.8  # Seconds between each combat action in round
+        self.execution_delay = 0.15  # Brief pause between queued combat actions
         self.floating_texts: list[dict] = []
         self.rachel_projectiles: list[dict[str, float | str]] = []
+        self._active_action_anim: dict[str, Any] | None = None
+        self._pending_prev_log: str = ""
 
         # Sprite Manager & Procedural Animation States
         self.sprite_manager = EnemySpriteManager()
@@ -86,12 +88,29 @@ class CombatView:
     def combat(self) -> RoundCombat | None:
         return self.session.combat
 
+    @property
+    def _effective_ui_phase(self) -> CombatPhase | None:
+        """Keep execution UI visible until the final action presentation finishes."""
+        if not self.combat:
+            return None
+        if self._active_action_anim is not None and self.combat.phase in (
+            CombatPhase.VICTORY,
+            CombatPhase.DEFEAT,
+            CombatPhase.ESCAPED,
+        ):
+            return CombatPhase.ACTION_EXECUTION
+        return self.combat.phase
+
     def on_enter(self) -> None:
         self.menu_mode = "MAIN"
         self.main_index = 0
         self.skill_index = 0
         self.target_index = 0
         self.floating_texts.clear()
+        self.rachel_projectiles.clear()
+        self._active_action_anim = None
+        self._pending_prev_log = ""
+        self.execution_timer = 0.0
 
         # Initialize animation states
         self.enemy_anim_states.clear()
@@ -180,11 +199,12 @@ class CombatView:
         if not self.combat or event.type != pygame.KEYDOWN:
             return
 
-        # Battle End confirmation
-        if self.combat.phase in (CombatPhase.VICTORY, CombatPhase.ESCAPED):
+        # Battle End confirmation (wait until final action presentation finishes)
+        ui_phase = self._effective_ui_phase
+        if ui_phase in (CombatPhase.VICTORY, CombatPhase.ESCAPED):
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 if (
-                    self.combat.phase == CombatPhase.VICTORY
+                    ui_phase == CombatPhase.VICTORY
                     and any(e.sprite_id == "mandragora_matron" for e in self.combat.enemies)
                     and not self.session.has_character("lyra")
                 ):
@@ -192,7 +212,7 @@ class CombatView:
                 self.session.transition_to(GameMode.EXPLORATION)
             return
 
-        if self.combat.phase == CombatPhase.DEFEAT:
+        if ui_phase == CombatPhase.DEFEAT:
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 self.session.transition_to(GameMode.TITLE)
             return
@@ -375,92 +395,18 @@ class CombatView:
             ):
                 self.rachel_projectiles.remove(projectile)
 
-        # Automatic step pacing during Action Execution
-        if self.combat.phase == CombatPhase.ACTION_EXECUTION:
+        # Progress active action banner + animation timing
+        if self._active_action_anim is not None:
+            self._update_action_presentation(dt)
+        elif self.combat.phase == CombatPhase.ACTION_EXECUTION:
             self.execution_timer += dt
             if self.execution_timer >= self.execution_delay:
                 self.execution_timer = 0.0
+                prev_log = self.combat.combat_log[-1] if self.combat.combat_log else "Round Begin"
                 res = self.combat.step_next_action()
                 if res:
-                    # 1. Trigger the actor animation. Violet Ember uses Rachel's
-                    # dedicated casting sequence; other actions keep the normal lunge.
-                    attacker_char = next((c for c in self.session.party.active_members if c.name == res.source_name), None)
-                    if attacker_char and attacker_char.id in self.party_anim_states:
-                        actor_state = self.party_anim_states[attacker_char.id]
-                        if attacker_char.id.lower() == "rachel" and res.ability_id == "violet_ember":
-                            actor_state.trigger_spell(duration=0.8, frame_count=8)
-                            target_ids = res.target_ids or []
-                            target_enemy = next(
-                                (e for e in self.combat.enemies if e.id in target_ids and e.is_alive),
-                                None,
-                            )
-                            if target_enemy is not None:
-                                self._spawn_rachel_violet_projectile(attacker_char, target_enemy)
-                        else:
-                            actor_state.trigger_attack(distance=34.0)
-                    else:
-                        attacker_enemy = next((e for e in self.combat.enemies if e.name == res.source_name), None)
-                        if attacker_enemy:
-                            ekey = self._enemy_anim_key(attacker_enemy)
-                            if ekey in self.enemy_anim_states:
-                                self.enemy_anim_states[ekey].trigger_attack(distance=34.0)
-
-                    # 2. Trigger hurt recoil, white hit-flash, and floating damage numbers
-                    if res.damage_dealt:
-                        for idx, val in enumerate(res.damage_dealt):
-                            tname = res.target_names[idx] if idx < len(res.target_names) else (res.target_names[0] if res.target_names else "")
-                            pop_x = 160.0
-                            pop_y = 120.0
-
-                            target_enemy = next((e for e in self.combat.enemies if e.name == tname), None)
-                            if target_enemy:
-                                ekey = self._enemy_anim_key(target_enemy)
-                                if ekey in self.enemy_anim_states:
-                                    self.enemy_anim_states[ekey].trigger_hurt(recoil=14.0)
-                                e_idx = self.combat.enemies.index(target_enemy)
-                                pop_x = 90.0 + (e_idx % 2) * 24.0 + 30.0
-                                pop_y = (125 - (len(self.combat.enemies) * 55) // 2) + e_idx * 55.0
-
-                            target_char = next((c for c in self.session.party.active_members if c.name == tname), None)
-                            if target_char:
-                                if target_char.id in self.party_anim_states:
-                                    self.party_anim_states[target_char.id].trigger_hurt(recoil=12.0)
-                                c_idx = self.session.party.active_members.index(target_char)
-                                pop_x = 450.0 + (c_idx % 2) * 24.0
-                                pop_y = 65.0 + c_idx * 42.0
-
-                            self.floating_texts.append(
-                                {
-                                    "text": f"{val}!" if res.is_crit else str(val),
-                                    "color": (255, 230, 80) if res.is_crit else (255, 255, 255),
-                                    "x": pop_x,
-                                    "y": pop_y,
-                                    "vy": -30.0,
-                                    "alpha": 255,
-                                }
-                            )
-
-                    elif res.healing_dealt:
-                        for idx, val in enumerate(res.healing_dealt):
-                            tname = res.target_names[idx] if idx < len(res.target_names) else (res.target_names[0] if res.target_names else "")
-                            pop_x = 460.0
-                            pop_y = 120.0
-                            target_char = next((c for c in self.session.party.active_members if c.name == tname), None)
-                            if target_char:
-                                c_idx = self.session.party.active_members.index(target_char)
-                                pop_x = 450.0 + (c_idx % 2) * 24.0
-                                pop_y = 65.0 + c_idx * 42.0
-
-                            self.floating_texts.append(
-                                {
-                                    "text": f"+{val}",
-                                    "color": (80, 255, 120),
-                                    "x": pop_x,
-                                    "y": pop_y,
-                                    "vy": -25.0,
-                                    "alpha": 255,
-                                }
-                            )
+                    self._pending_prev_log = prev_log
+                    self._start_action_presentation(res)
 
         # Update floating texts
         for ft in list(self.floating_texts):
@@ -489,6 +435,7 @@ class CombatView:
         self._draw_enemies(surface)
         self._draw_party(surface)
         self._draw_rachel_projectiles(surface)
+        self._draw_action_banner(surface)
 
         sw_s, sh_s = surface.get_size()
         sx = sw_s / 1280.0
@@ -498,6 +445,221 @@ class CombatView:
             txt_surf = pop_font.render(ft["text"], True, ft["color"])
             txt_surf.set_alpha(ft["alpha"])
             surface.blit(txt_surf, (int(ft["x"] * 2.0 * sx), int(ft["y"] * 2.0 * sy)))
+
+    def _start_action_presentation(self, res: Any) -> None:
+        """Initialize the fade-in action banner, 1.5s skill animation window, and delayed impact."""
+        is_basic = res.ability_id == "basic_attack" or res.action_name in (
+            "Attack",
+            "Defend",
+            "Flee",
+            "Stunned",
+        )
+        if is_basic:
+            fade_in = 0.14
+            anim_duration = 0.75
+            fade_out = 0.22
+            impact_offset = 0.30
+        else:
+            fade_in = 0.20
+            anim_duration = 1.50
+            fade_out = 0.30
+            impact_offset = 1.15 if res.ability_id == "violet_ember" else 0.75
+
+        self._active_action_anim = {
+            "res": res,
+            "label": res.action_name,
+            "elapsed": 0.0,
+            "fade_in": fade_in,
+            "anim_duration": anim_duration,
+            "fade_out": fade_out,
+            "total_duration": fade_in + anim_duration,
+            "impact_time": fade_in + impact_offset,
+            "anim_started": False,
+            "impact_triggered": False,
+        }
+
+    def _update_action_presentation(self, dt: float) -> None:
+        """Advance the current action's fade-in, animation, impact, and synchronized fade-out."""
+        state = self._active_action_anim
+        if not state:
+            return
+        state["elapsed"] += dt
+        elapsed = float(state["elapsed"])
+        res = state["res"]
+
+        if not state["anim_started"] and elapsed >= float(state["fade_in"]):
+            state["anim_started"] = True
+            self._trigger_attacker_animation(res)
+
+        if not state["impact_triggered"] and elapsed >= float(state["impact_time"]):
+            state["impact_triggered"] = True
+            self._trigger_action_impact(res)
+
+        if elapsed >= float(state["total_duration"]):
+            if not state["anim_started"]:
+                self._trigger_attacker_animation(res)
+            if not state["impact_triggered"]:
+                self._trigger_action_impact(res)
+            self._active_action_anim = None
+
+    def _trigger_attacker_animation(self, res: Any) -> None:
+        """Start the caster/attacker sprite animation for the resolved action."""
+        if not self.combat:
+            return
+        attacker_char = next(
+            (c for c in self.session.party.active_members if c.name == res.source_name),
+            None,
+        )
+        if attacker_char and attacker_char.id in self.party_anim_states:
+            actor_state = self.party_anim_states[attacker_char.id]
+            if attacker_char.id.lower() == "rachel" and res.ability_id == "violet_ember":
+                actor_state.trigger_spell(duration=0.8, frame_count=8)
+                target_ids = res.target_ids or []
+                target_enemy = next(
+                    (e for e in self.combat.enemies if e.id in target_ids and e.is_alive),
+                    None,
+                )
+                if target_enemy is not None:
+                    self._spawn_rachel_violet_projectile(attacker_char, target_enemy)
+            else:
+                actor_state.trigger_attack(distance=34.0)
+            return
+
+        attacker_enemy = next(
+            (e for e in self.combat.enemies if e.name == res.source_name),
+            None,
+        )
+        if attacker_enemy:
+            ekey = self._enemy_anim_key(attacker_enemy)
+            if ekey in self.enemy_anim_states:
+                self.enemy_anim_states[ekey].trigger_attack(distance=34.0)
+
+    def _trigger_action_impact(self, res: Any) -> None:
+        """Apply hurt recoil, hit-flash, and floating damage/healing numbers at impact."""
+        if not self.combat:
+            return
+        if res.damage_dealt:
+            for idx, val in enumerate(res.damage_dealt):
+                tname = (
+                    res.target_names[idx]
+                    if idx < len(res.target_names)
+                    else (res.target_names[0] if res.target_names else "")
+                )
+                pop_x = 160.0
+                pop_y = 120.0
+
+                target_enemy = next((e for e in self.combat.enemies if e.name == tname), None)
+                if target_enemy:
+                    ekey = self._enemy_anim_key(target_enemy)
+                    if ekey in self.enemy_anim_states:
+                        self.enemy_anim_states[ekey].trigger_hurt(recoil=14.0)
+                    e_idx = self.combat.enemies.index(target_enemy)
+                    pop_x = 90.0 + (e_idx % 2) * 24.0 + 30.0
+                    pop_y = (125 - (len(self.combat.enemies) * 55) // 2) + e_idx * 55.0
+
+                target_char = next(
+                    (c for c in self.session.party.active_members if c.name == tname),
+                    None,
+                )
+                if target_char:
+                    if target_char.id in self.party_anim_states:
+                        self.party_anim_states[target_char.id].trigger_hurt(recoil=12.0)
+                    c_idx = self.session.party.active_members.index(target_char)
+                    pop_x = 450.0 + (c_idx % 2) * 24.0
+                    pop_y = 65.0 + c_idx * 42.0
+
+                self.floating_texts.append(
+                    {
+                        "text": f"{val}!" if res.is_crit else str(val),
+                        "color": (255, 230, 80) if res.is_crit else (255, 255, 255),
+                        "x": pop_x,
+                        "y": pop_y,
+                        "vy": -30.0,
+                        "alpha": 255,
+                    }
+                )
+        elif res.healing_dealt:
+            for idx, val in enumerate(res.healing_dealt):
+                tname = (
+                    res.target_names[idx]
+                    if idx < len(res.target_names)
+                    else (res.target_names[0] if res.target_names else "")
+                )
+                pop_x = 460.0
+                pop_y = 120.0
+                target_char = next(
+                    (c for c in self.session.party.active_members if c.name == tname),
+                    None,
+                )
+                if target_char:
+                    c_idx = self.session.party.active_members.index(target_char)
+                    pop_x = 450.0 + (c_idx % 2) * 24.0
+                    pop_y = 65.0 + c_idx * 42.0
+
+                self.floating_texts.append(
+                    {
+                        "text": f"+{val}",
+                        "color": (80, 255, 120),
+                        "x": pop_x,
+                        "y": pop_y,
+                        "vy": -25.0,
+                        "alpha": 255,
+                    }
+                )
+
+    def _get_action_banner_alpha(self) -> int:
+        """Compute current alpha [0, 255] for the floating action-name banner."""
+        state = self._active_action_anim
+        if not state:
+            return 0
+        elapsed = float(state["elapsed"])
+        fade_in = float(state["fade_in"])
+        fade_out = float(state["fade_out"])
+        total = float(state["total_duration"])
+
+        if elapsed < fade_in:
+            return max(0, min(255, int(255.0 * (elapsed / max(0.01, fade_in)))))
+        if elapsed >= total - fade_out:
+            remaining = max(0.0, total - elapsed)
+            return max(0, min(255, int(255.0 * (remaining / max(0.01, fade_out)))))
+        return 255
+
+    def _draw_action_banner(self, surface: pygame.Surface) -> None:
+        """Render the centered skill/action box 20px below the top announcement banner."""
+        alpha = self._get_action_banner_alpha()
+        if alpha <= 0 or not self._active_action_anim:
+            return
+
+        sw_s, sh_s = surface.get_size()
+        sx = sw_s / 1280.0
+        sy = sh_s / 720.0
+
+        label = str(self._active_action_anim["label"])
+        font = get_font(max(14, int(20 * min(sx, sy))), bold=True)
+        txt_surf = font.render(label, True, (250, 242, 220))
+
+        box_w = max(int(320 * sx), txt_surf.get_width() + int(64 * sx))
+        box_w = min(box_w, int(640 * sx))
+        box_h = max(28, int(38 * sy))
+        box_x = (sw_s - box_w) // 2
+        # Top banner is y=14, h=48 (bottom y=62); 20px below => y=82
+        box_y = int(82 * sy)
+
+        panel = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+        pygame.draw.rect(panel, (18, 22, 34, 228), (0, 0, box_w, box_h), border_radius=max(4, int(6 * min(sx, sy))))
+        pygame.draw.rect(
+            panel,
+            (212, 178, 92, 245),
+            (0, 0, box_w, box_h),
+            width=max(1, int(2 * min(sx, sy))),
+            border_radius=max(4, int(6 * min(sx, sy))),
+        )
+
+        txt_x = (box_w - txt_surf.get_width()) // 2
+        txt_y = (box_h - txt_surf.get_height()) // 2
+        panel.blit(txt_surf, (txt_x, txt_y))
+        panel.set_alpha(alpha)
+        surface.blit(panel, (box_x, box_y))
 
     def _spawn_rachel_violet_projectile(
         self, caster: Character, target: Enemy
@@ -527,8 +689,8 @@ class CombatView:
         self.rachel_projectiles.append(
             {
                 "elapsed": 0.0,
-                "launch_delay": 0.34,
-                "duration": 0.32,
+                "launch_delay": 0.65,
+                "duration": 0.50,
                 "start_x": caster_x - 54.0,
                 "start_y": caster_foot_y - 102.0,
                 "end_x": target_x + 24.0,
@@ -545,20 +707,34 @@ class CombatView:
         pixel_scale = 2.0 * min(sx, sy)
 
         for projectile in self.rachel_projectiles:
-            flight_elapsed = float(projectile["elapsed"]) - float(projectile["launch_delay"])
+            elapsed = float(projectile["elapsed"])
+            launch_delay = max(0.01, float(projectile["launch_delay"]))
+            flight_elapsed = elapsed - launch_delay
             if flight_elapsed < 0.0:
-                continue
-            duration = max(0.01, float(projectile["duration"]))
-            progress = min(1.0, max(0.0, flight_elapsed / duration))
-            x = float(projectile["start_x"]) + (
-                float(projectile["end_x"]) - float(projectile["start_x"])
-            ) * progress
-            y = float(projectile["start_y"]) + (
-                float(projectile["end_y"]) - float(projectile["start_y"])
-            ) * progress - math.sin(progress * math.pi) * 26.0
+                # Phase 1: 8-frame charge formation in front of Rachel
+                charge_progress = min(1.0, max(0.0, elapsed / launch_delay))
+                x = float(projectile["start_x"])
+                y = float(projectile["start_y"])
+                frame_index = min(7, int(charge_progress * 8.0))
+                frame = self.sprite_manager.get_projectile_frame(
+                    "violet_ember", frame_index, prefix="charge"
+                )
+            else:
+                # Phase 2: 8-frame projectile flight toward the target
+                duration = max(0.01, float(projectile["duration"]))
+                progress = min(1.0, max(0.0, flight_elapsed / duration))
+                x = float(projectile["start_x"]) + (
+                    float(projectile["end_x"]) - float(projectile["start_x"])
+                ) * progress
+                y = float(projectile["start_y"]) + (
+                    float(projectile["end_y"]) - float(projectile["start_y"])
+                ) * progress - math.sin(progress * math.pi) * 26.0
 
-            frame_index = min(7, int(progress * 8.0))
-            frame = self.sprite_manager.get_projectile_frame("violet_ember", frame_index)
+                frame_index = min(7, int(progress * 8.0))
+                frame = self.sprite_manager.get_projectile_frame(
+                    "violet_ember", frame_index, prefix="projectile"
+                )
+
             if frame is None:
                 continue
 
@@ -635,7 +811,7 @@ class CombatView:
                 bar_x = rx + (sw - bar_w) // 2
                 bar_y = max(int(86 * sy), ry - int(12 * sy))
                 name_col = (255, 235, 90) if is_targeted else (240, 230, 210)
-                name_txt = ui_font.render(enemy.name, True, name_col)
+                name_txt = ui_font.render(f"({enemy.level}) {enemy.name}", True, name_col)
                 name_x = rx + (sw - name_txt.get_width()) // 2
                 name_y = bar_y - int(22 * sy)
                 surface.blit(name_txt, (name_x, name_y))
@@ -786,7 +962,10 @@ class CombatView:
         if not self.combat:
             return ()
         active_char = self.combat.active_input_character
-        last_log = self.combat.combat_log[-1] if self.combat.combat_log else ""
+        if self._active_action_anim is not None and not self._active_action_anim["impact_triggered"]:
+            last_log = self._pending_prev_log
+        else:
+            last_log = self.combat.combat_log[-1] if self.combat.combat_log else ""
         party_sig = tuple(
             (
                 c.id,
@@ -802,7 +981,7 @@ class CombatView:
         )
         inv_sig = tuple(sorted((k, v) for k, v in self.session.party.inventory.items() if v > 0))
         return (
-            self.combat.phase,
+            self._effective_ui_phase,
             self.menu_mode,
             self.main_index,
             self.skill_index,
@@ -835,7 +1014,10 @@ class CombatView:
         r = self.ui_manager.rect
 
         # 1. Top Announcement Banner
-        last_log = self.combat.combat_log[-1] if self.combat.combat_log else "Round Begin"
+        if self._active_action_anim is not None and not self._active_action_anim["impact_triggered"]:
+            last_log = self._pending_prev_log or "Round Begin"
+        else:
+            last_log = self.combat.combat_log[-1] if self.combat.combat_log else "Round Begin"
         banner = pygame_gui.elements.UIPanel(
             relative_rect=r(40, 14, 1200, 48),
             manager=mgr,
@@ -1041,7 +1223,8 @@ class CombatView:
         self._ui_widgets.append(bottom_bar)
 
         # 5. Victory / Defeat Modal Overlays
-        if self.combat.phase in (CombatPhase.VICTORY, CombatPhase.ESCAPED):
+        ui_phase = self._effective_ui_phase
+        if ui_phase in (CombatPhase.VICTORY, CombatPhase.ESCAPED):
             modal = pygame_gui.elements.UIPanel(
                 relative_rect=r(340, 170, 600, 320),
                 starting_height=100,
@@ -1049,7 +1232,7 @@ class CombatView:
                 object_id=ObjectID(class_id="@rpg_panel_gold"),
             )
             attach_ornate_corners(modal, self.ui_manager, starting_height=5)
-            title = "VICTORY!" if self.combat.phase == CombatPhase.VICTORY else "ESCAPED!"
+            title = "VICTORY!" if ui_phase == CombatPhase.VICTORY else "ESCAPED!"
             pygame_gui.elements.UILabel(
                 relative_rect=r(56, 22, 488, 48),
                 text=title,
@@ -1091,7 +1274,7 @@ class CombatView:
             )
             self._ui_widgets.append(modal)
 
-        elif self.combat.phase == CombatPhase.DEFEAT:
+        elif ui_phase == CombatPhase.DEFEAT:
             modal = pygame_gui.elements.UIPanel(
                 relative_rect=r(340, 210, 600, 240),
                 starting_height=100,

@@ -91,3 +91,20 @@ def test_violet_ember_result_exposes_ability_and_target_for_presentation():
     assert result is not None
     assert result.ability_id == "violet_ember"
     assert result.target_ids == ["violet_target"]
+
+
+def test_violet_ember_two_phase_charge_and_projectile_frames_load():
+    import pygame
+
+    pygame.init()
+    try:
+        manager = EnemySpriteManager()
+        for idx in range(8):
+            charge = manager.get_projectile_frame("violet_ember", idx, prefix="charge")
+            proj = manager.get_projectile_frame("violet_ember", idx, prefix="projectile")
+            assert charge is not None
+            assert charge.get_size() == (64, 80)
+            assert proj is not None
+            assert proj.get_size() == (64, 80)
+    finally:
+        pygame.quit()

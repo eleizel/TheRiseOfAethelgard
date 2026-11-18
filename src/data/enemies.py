@@ -170,6 +170,144 @@ ENEMY_TEMPLATES: Final[dict[str, dict]] = {
         "loot_drops": [("sunfire_blade", 1.0)],
         "growth_per_level": Stats(max_hp=45, max_mp=10, attack=4, defense=3, magic_attack=2, magic_defense=2, speed=1, crit_chance=0.004),
     },
+    "corrupt_bloom": {
+        "name": "Corrupt Bloom",
+        "tier": EnemyTier.MINION,
+        "level": 5,
+        "max_hp": 72,
+        "stats": Stats(
+            max_hp=72,
+            max_mp=35,
+            attack=18,
+            defense=11,
+            magic_attack=20,
+            magic_defense=14,
+            speed=12,
+            crit_chance=0.06,
+        ),
+        "weaknesses": ["FIRE", "HOLY"],
+        "resistances": ["EARTH", "DARK"],
+        "abilities": ["briar_thorn", "spore_burst", "basic_attack"],
+        "exp_reward": 52,
+        "gold_reward": 38,
+        "loot_drops": [("healing_poultice", 0.45)],
+        "growth_per_level": Stats(max_hp=12, max_mp=4, attack=2, defense=2, magic_attack=3, magic_defense=2, speed=1, crit_chance=0.003),
+    },
+    "crystal_viper": {
+        "name": "Crystal Viper",
+        "tier": EnemyTier.MINION,
+        "level": 5,
+        "max_hp": 68,
+        "stats": Stats(
+            max_hp=68,
+            max_mp=30,
+            attack=24,
+            defense=10,
+            magic_attack=12,
+            magic_defense=11,
+            speed=18,
+            crit_chance=0.12,
+        ),
+        "weaknesses": ["FIRE", "EARTH"],
+        "resistances": ["FROST", "DARK"],
+        "abilities": ["venom_blade", "briar_thorn", "basic_attack"],
+        "exp_reward": 58,
+        "gold_reward": 42,
+        "loot_drops": [("healing_poultice", 0.40)],
+        "growth_per_level": Stats(max_hp=11, max_mp=3, attack=3, defense=1, magic_attack=2, magic_defense=1, speed=2, crit_chance=0.004),
+    },
+    "root_wraith": {
+        "name": "Root Wraith",
+        "tier": EnemyTier.MINION,
+        "level": 5,
+        "max_hp": 65,
+        "stats": Stats(
+            max_hp=65,
+            max_mp=60,
+            attack=14,
+            defense=9,
+            magic_attack=25,
+            magic_defense=16,
+            speed=16,
+            crit_chance=0.08,
+        ),
+        "weaknesses": ["HOLY", "FIRE"],
+        "resistances": ["DARK", "PHYSICAL"],
+        "abilities": ["petal_hex", "wisteria_blaze", "basic_attack"],
+        "exp_reward": 60,
+        "gold_reward": 45,
+        "loot_drops": [("healing_poultice", 0.45)],
+        "growth_per_level": Stats(max_hp=10, max_mp=6, attack=2, defense=1, magic_attack=3, magic_defense=2, speed=2, crit_chance=0.003),
+    },
+    "shadow_fungus": {
+        "name": "Shadow Fungus",
+        "tier": EnemyTier.MINION,
+        "level": 5,
+        "max_hp": 82,
+        "stats": Stats(
+            max_hp=82,
+            max_mp=35,
+            attack=17,
+            defense=14,
+            magic_attack=18,
+            magic_defense=15,
+            speed=10,
+            crit_chance=0.05,
+        ),
+        "weaknesses": ["FIRE", "HOLY"],
+        "resistances": ["EARTH", "DARK"],
+        "abilities": ["spore_burst", "smoke_screen", "basic_attack"],
+        "exp_reward": 56,
+        "gold_reward": 40,
+        "loot_drops": [("healing_poultice", 0.50)],
+        "growth_per_level": Stats(max_hp=13, max_mp=4, attack=2, defense=2, magic_attack=2, magic_defense=2, speed=1, crit_chance=0.003),
+    },
+    "corrupt_geomancer_elite": {
+        "name": "Corrupt Geomancer",
+        "tier": EnemyTier.ELITE,
+        "level": 6,
+        "max_hp": 175,
+        "stats": Stats(
+            max_hp=175,
+            max_mp=90,
+            attack=20,
+            defense=15,
+            magic_attack=28,
+            magic_defense=20,
+            speed=13,
+            crit_chance=0.08,
+        ),
+        "weaknesses": ["HOLY", "FROST"],
+        "resistances": ["EARTH", "DARK"],
+        "abilities": ["root_slam", "petal_hex", "spore_burst"],
+        "exp_reward": 115,
+        "gold_reward": 85,
+        "loot_drops": [("mana_draught", 1.0), ("elixir_of_dawn", 0.35)],
+        "growth_per_level": Stats(max_hp=26, max_mp=8, attack=2, defense=2, magic_attack=4, magic_defense=3, speed=1, crit_chance=0.004),
+    },
+    "root_guardian_elite": {
+        "name": "Root Guardian",
+        "tier": EnemyTier.ELITE,
+        "level": 6,
+        "max_hp": 210,
+        "stats": Stats(
+            max_hp=210,
+            max_mp=50,
+            attack=28,
+            defense=20,
+            magic_attack=14,
+            magic_defense=16,
+            speed=11,
+            crit_chance=0.07,
+        ),
+        "weaknesses": ["FIRE", "HOLY"],
+        "resistances": ["PHYSICAL", "EARTH"],
+        "abilities": ["root_slam", "shield_slam", "basic_attack"],
+        "exp_reward": 120,
+        "gold_reward": 90,
+        "loot_drops": [("healing_poultice", 1.0), ("panacea_herbs", 0.65)],
+        "growth_per_level": Stats(max_hp=30, max_mp=5, attack=3, defense=3, magic_attack=2, magic_defense=2, speed=1, crit_chance=0.003),
+    },
 }
 
 
@@ -275,15 +413,25 @@ def generate_encounter_for_map(
 
     if map_id == "briarwood_verge":
         candidates = ["thornvein_creeper", "bramble_hound", "spore_pod"]
+        weights = [1, 1, 1]
     elif map_id == "rooted_hollows":
-        candidates = ["root_crawler", "thornvein_creeper", "spore_pod"]
+        candidates = [
+            "root_crawler",
+            "corrupt_bloom",
+            "crystal_viper",
+            "root_wraith",
+            "shadow_fungus",
+            "corrupt_geomancer_elite",
+            "root_guardian_elite",
+        ]
+        weights = [4, 4, 4, 4, 4, 1, 1]
     else:
         return [create_enemy("thornvein_creeper", "enemy_1")]
 
     count = random.choice([1, 2, 2, 3])
     enemies = []
     for i in range(count):
-        t_id = random.choice(candidates)
+        t_id = random.choices(candidates, weights=weights, k=1)[0]
         enemy_lvl = (
             compute_scaled_level(party_avg_level, min_lvl, max_lvl)
             if party_avg_level is not None

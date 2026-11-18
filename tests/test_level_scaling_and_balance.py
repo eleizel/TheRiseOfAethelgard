@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from src.core.session import GameSession
+from src.data.abilities import ABILITY_REGISTRY
 from src.data.characters import create_character
 from src.data.classes import CLASS_REGISTRY
 from src.data.enemies import (
@@ -10,6 +11,8 @@ from src.data.enemies import (
     generate_encounter_for_map,
     scaled_boss_level,
 )
+from src.data.items import ITEM_REGISTRY
+from src.frontends.pygame_ce.combat_background import CombatBackgroundManager
 
 
 def test_character_gain_exp_applies_class_growth_per_level():
@@ -80,3 +83,55 @@ def test_enemy_level_scaling_and_zone_caps():
     assert scaled_boss_level(treant_base, 1.0) == treant_base
     assert scaled_boss_level(treant_base, 3.0) == treant_base + 1
     assert scaled_boss_level(treant_base, 12.0) == treant_base + 2
+
+
+def test_rooted_hollows_new_enemies_and_encounter_pool():
+    new_ids = (
+        "corrupt_bloom",
+        "crystal_viper",
+        "root_wraith",
+        "shadow_fungus",
+        "corrupt_geomancer_elite",
+        "root_guardian_elite",
+    )
+    allowed_templates = {"root_crawler", *new_ids}
+    expected_names = {ENEMY_TEMPLATES[tid]["name"] for tid in allowed_templates}
+
+    for tid in new_ids:
+        tmpl = ENEMY_TEMPLATES[tid]
+        for ab_id in tmpl["abilities"]:
+            assert ab_id in ABILITY_REGISTRY, f"{tid} references unknown ability {ab_id}"
+        for item_id, _chance in tmpl["loot_drops"]:
+            assert item_id in ITEM_REGISTRY, f"{tid} references unknown item {item_id}"
+
+        base = create_enemy(tid, f"{tid}_base")
+        scaled = create_enemy(tid, f"{tid}_lvl8", level=8)
+        assert scaled.level == 8
+        assert scaled.stats.max_hp > base.stats.max_hp
+        assert scaled.exp_reward > base.exp_reward
+
+    seen_names: set[str] = set()
+    for _ in range(120):
+        encounter = generate_encounter_for_map("rooted_hollows", party_avg_level=5.0)
+        assert encounter
+        for enemy in encounter:
+            assert enemy.name in expected_names
+            assert enemy.name not in {"Thornvein Creeper", "Spore Pod", "Bramble Hound"}
+            seen_names.add(enemy.name)
+
+    assert "Root Crawler" in seen_names
+    assert seen_names.issubset(expected_names)
+
+
+def test_rooted_hollows_combat_backgrounds_load():
+    import pygame
+
+    pygame.init()
+    try:
+        mgr = CombatBackgroundManager()
+        bg = mgr.get_random_background("rooted_hollows", "Rooted Hollows")
+        assert bg is not None
+        assert bg.get_width() > 0
+        assert bg.get_height() > 0
+    finally:
+        pygame.quit()
