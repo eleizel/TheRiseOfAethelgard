@@ -29,6 +29,13 @@ class Party:
     def alive_active_members(self) -> list[Character]:
         return [m for m in self.active_members if m.is_alive]
 
+    @property
+    def average_active_level(self) -> float:
+        """Average level of the active 4-member squad (defaults to 1.0)."""
+        if not self.active_members:
+            return 1.0
+        return sum(m.level for m in self.active_members) / len(self.active_members)
+
     def add_character(self, character: Character) -> bool:
         """Add character to active squad if space permits (<4), otherwise to reserve."""
         # Ensure no duplicate ID

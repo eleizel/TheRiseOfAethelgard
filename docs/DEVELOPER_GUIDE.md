@@ -184,12 +184,12 @@ All items live in `ITEM_REGISTRY` inside [src/data/items.py](file:///c:/Users/Se
 ## 7. Adding New Enemies
 
 1. **Add Template** to `ENEMY_TEMPLATES` in [src/data/enemies.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/data/enemies.py):
-   - Set `name`, `tier` (`MINION`, `ELITE`, `BOSS`), `level`, `stats`, `weaknesses`, `resistances`, `abilities` (must exist in `ABILITY_REGISTRY`), `exp_reward`, `gold_reward`, and `loot_drops`.
+   - Set `name`, `tier` (`MINION`, `ELITE`, `BOSS`), `level`, `stats`, `growth_per_level` (`Stats`), `weaknesses`, `resistances`, `abilities` (must exist in `ABILITY_REGISTRY`), `exp_reward`, `gold_reward`, and `loot_drops`.
 2. **Add Sprite Assets:**
    - Place sprite in `assets/sprites/enemies/<template_id>.png` (and optional corpse sprite `corpse_<name>.png`).
    - If the filename differs from `<template_id>.png`, register the mapping in `EnemySpriteManager.SPRITE_ALIASES` ([combat_animator.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/combat_animator.py)).
-3. **Add to Encounters:**
-   - Reference `<template_id>` in `generate_encounter_for_map()` ([src/data/enemies.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/data/enemies.py)).
+3. **Add to Encounters & Zone Level Caps:**
+   - Reference `<template_id>` in `generate_encounter_for_map()` ([src/data/enemies.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/data/enemies.py)) and configure the zone's `(min_level, max_level)` band in `MAP_LEVEL_BANDS`. Random encounters scale near `party.average_active_level` clamped to the zone band; scripted bosses scale via `scaled_boss_level(base_level, party_avg_level)`.
 
 ---
 

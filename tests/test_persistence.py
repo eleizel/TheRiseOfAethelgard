@@ -22,7 +22,7 @@ def test_session_save_and_load_memory():
     summary = manager.get_slot_summary(slot_id=1)
     assert summary.exists is True
     assert summary.party_leader_name == "Rowan"
-    assert summary.party_count == 4
+    assert summary.party_count == 2
 
     # Restore in new session
     new_session = GameSession(save_manager=manager)

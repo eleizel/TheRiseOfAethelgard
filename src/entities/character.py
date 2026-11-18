@@ -68,31 +68,39 @@ class Character:
         return calculate_exp_threshold(self.level)
 
     def gain_exp(self, amount: int) -> list[int]:
-        """Add EXP and return list of levels gained (if any)."""
+        """Add EXP, apply class stat growth per level, and return levels gained."""
         if amount <= 0:
             return []
 
+        from src.data.classes import CLASS_REGISTRY
+
         self.current_exp += amount
         levels_gained: list[int] = []
+        class_def = CLASS_REGISTRY.get(self.class_id)
 
         while self.current_exp >= self.exp_to_next_level:
             self.current_exp -= self.exp_to_next_level
             self.level += 1
             self.skill_points += 1
+            if class_def is not None:
+                growth = class_def.growth_per_level
+                self.base_stats = self.base_stats.add(growth)
+                self.current_hp = min(self.effective_stats.max_hp, self.current_hp + growth.max_hp)
+                self.current_mp = min(self.effective_stats.max_mp, self.current_mp + growth.max_mp)
             levels_gained.append(self.level)
 
         return levels_gained
 
     def heal(self, amount: int) -> int:
-        """Restore HP up to max_hp. Returns amount actually healed."""
-        effective_max = self.base_stats.max_hp
+        """Restore HP up to effective max_hp. Returns amount actually healed."""
+        effective_max = self.effective_stats.max_hp
         old_hp = self.current_hp
         self.current_hp = min(effective_max, self.current_hp + max(0, amount))
         return self.current_hp - old_hp
 
     def restore_mp(self, amount: int) -> int:
-        """Restore MP up to max_mp. Returns amount actually restored."""
-        effective_max = self.base_stats.max_mp
+        """Restore MP up to effective max_mp. Returns amount actually restored."""
+        effective_max = self.effective_stats.max_mp
         old_mp = self.current_mp
         self.current_mp = min(effective_max, self.current_mp + max(0, amount))
         return self.current_mp - old_mp

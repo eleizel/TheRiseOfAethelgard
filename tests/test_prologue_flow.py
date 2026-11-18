@@ -12,7 +12,7 @@ def test_complete_prologue_narrative_flow():
     session = GameSession(seed=777)
     session.initialize_new_game()
     assert session.map_id == "oakhaven_village"
-    assert len(session.party.active_members) == 4
+    assert len(session.party.active_members) == 2
     dialogue_view = DialogueView(session)
 
     # 2. Rowan talks to Elder Tomas

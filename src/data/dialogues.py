@@ -55,6 +55,7 @@ ELDER_TOMAS_NODES: Final[dict[str, DialogueNode]] = {
         speaker_id="elder",
         text="She took her herb satchel south at sunrise to gather purging bark. She hasn't returned. Please, Rowan... bring her back safely.",
         next_node_id="elder_choices",
+        action_trigger="START_QUEST_FIND_LYRA",
     ),
     "elder_ready": DialogueNode(
         id="elder_ready",
@@ -244,7 +245,15 @@ SPECIAL_ENCOUNTER_NODES: Final[dict[str, DialogueNode]] = {
         speaker_name="Mandragora Matron",
         speaker_id="mandragora_matron",
         text="RAWWRRRRRRRRR!!!",
+        next_node_id="special_melissa_1",
+    ),
+    "special_melissa_1": DialogueNode(
+        id="special_melissa_1",
+        speaker_name="Melissa",
+        speaker_id="melissa",
+        text="Careful! That ancient monolith was keeping it bound—stand back, I'll lend you my Weave magic!",
         next_node_id="special_5",
+        action_trigger="UNLOCK_CHAR:melissa",
     ),
     "special_5": DialogueNode(
         id="special_5",
@@ -625,6 +634,41 @@ DIALOGUE_REGISTRY: Final[dict[str, DialogueTree]] = {
             ),
         },
         start_node_id="font_1",
+    ),
+    "lyra_rescue_dialogue": DialogueTree(
+        id="lyra_rescue_dialogue",
+        nodes={
+            "lyra_res_1": DialogueNode(
+                id="lyra_res_1",
+                speaker_name="Lyra",
+                speaker_id="lyra",
+                text="Rowan! Rachel! Thank the light—those roots dragged me beneath the monolith's vines before I could reach the village!",
+                next_node_id="lyra_res_2",
+            ),
+            "lyra_res_2": DialogueNode(
+                id="lyra_res_2",
+                speaker_name="Rachel",
+                speaker_id="rachel",
+                text="Are you hurt, Lyra? Elder Tomas and the whole village were worried sick when you didn't return at dawn.",
+                next_node_id="lyra_res_3",
+            ),
+            "lyra_res_3": DialogueNode(
+                id="lyra_res_3",
+                speaker_name="Rowan",
+                speaker_id="rowan",
+                text="Briarwood is far too dangerous to wander alone now. Stay with us—our party needs your healing.",
+                next_node_id="lyra_res_4",
+            ),
+            "lyra_res_4": DialogueNode(
+                id="lyra_res_4",
+                speaker_name="Lyra",
+                speaker_id="lyra",
+                text="You're right. I'll gather my herb satchel and march with you!",
+                next_node_id=None,
+                action_trigger="UNLOCK_CHAR:lyra",
+            ),
+        },
+        start_node_id="lyra_res_1",
     ),
 }
 

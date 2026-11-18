@@ -2,8 +2,8 @@
   "id": "rooted_hollows",
   "name": "Rooted Hollows",
   "dimensions": {
-    "width": 640,
-    "height": 360
+    "width": 1280,
+    "height": 720
   },
   "tile_size": 32,
   "background": {
@@ -12,520 +12,261 @@
   },
   "atmosphere": {
     "ambient_light": [
-      58,
-      36,
-      78
+      60,
+      38,
+      82
     ],
     "ambient_particles": "spores",
-    "particle_count": 45
+    "particle_count": 55
   },
   "collisions": [
     {
-      "id": "north_wall_left",
+      "id": "north_wall_west",
       "x": 0,
       "y": 0,
-      "w": 528,
-      "h": 59
+      "w": 1084,
+      "h": 146
     },
     {
       "id": "north_wall_arch_top",
-      "x": 530,
+      "x": 1084,
       "y": 0,
-      "w": 46,
-      "h": 28
+      "w": 68,
+      "h": 102
     },
     {
-      "id": "north_wall_right",
-      "x": 576,
+      "id": "north_wall_east",
+      "x": 1152,
       "y": 0,
-      "w": 64,
-      "h": 110
+      "w": 128,
+      "h": 152
     },
     {
-      "id": "west_wall",
+      "id": "west_cliff_upper",
       "x": 0,
-      "y": 70,
-      "w": 22,
-      "h": 290
+      "y": 146,
+      "w": 148,
+      "h": 210
     },
     {
-      "id": "east_wall",
-      "x": 608,
-      "y": 110,
-      "w": 32,
-      "h": 250
-    },
-    {
-      "id": "top_left_crystal_alcove",
-      "x": 22,
-      "y": 70,
-      "w": 36,
-      "h": 72
-    },
-    {
-      "id": "top_left_pillar_ruin",
-      "x": 166,
-      "y": 53,
-      "w": 52,
-      "h": 42
-    },
-    {
-      "id": "top_center_root_mound",
-      "x": 218,
-      "y": 58,
-      "w": 157,
-      "h": 67
-    },
-    {
-      "id": "top_right_pillar",
-      "x": 392,
-      "y": 48,
-      "w": 18,
-      "h": 55
-    },
-    {
-      "id": "west_chasm",
-      "x": 119,
-      "y": 164,
+      "id": "west_cliff_lower",
+      "x": 0,
+      "y": 356,
       "w": 96,
-      "h": 64
+      "h": 364
     },
     {
-      "id": "center_broken_wall",
-      "x": 212,
-      "y": 206,
-      "w": 95,
-      "h": 39
-    },
-    {
-      "id": "east_chasm_upper",
-      "x": 425,
-      "y": 126,
-      "w": 33,
-      "h": 89
-    },
-    {
-      "id": "east_chasm_lower",
-      "x": 361,
-      "y": 210,
-      "w": 52,
-      "h": 151
-    },
-    {
-      "id": "far_right_roots_cliff",
-      "x": 568,
-      "y": 138,
-      "w": 41,
-      "h": 121
-    },
-    {
-      "id": "south_void_left",
-      "x": 22,
-      "y": 308,
-      "w": 96,
-      "h": 52
-    },
-    {
-      "id": "south_void_center",
-      "x": 121,
-      "y": 346,
-      "w": 221,
-      "h": 13
-    },
-    {
-      "id": "south_void_right",
-      "x": 549,
-      "y": 326,
-      "w": 60,
-      "h": 33
-    },
-    {
-      "id": "pillar_bottom_left",
-      "x": 26,
-      "y": 210,
-      "w": 30,
-      "h": 50
-    },
-    {
-      "id": "pillar_bottom_center",
-      "x": 228,
-      "y": 290,
-      "w": 19,
-      "h": 35
-    },
-    {
-      "id": "col_1",
-      "x": 157,
-      "y": 230,
-      "w": 48,
-      "h": 8
-    },
-    {
-      "id": "col_2",
-      "x": 171,
-      "y": 240,
-      "w": 19,
-      "h": 8
-    },
-    {
-      "id": "col_3",
-      "x": 111,
-      "y": 178,
-      "w": 8,
-      "h": 42
-    },
-    {
-      "id": "col_4",
-      "x": 103,
-      "y": 193,
-      "w": 8,
-      "h": 18
-    },
-    {
-      "id": "col_5",
-      "x": 158,
+      "id": "east_cliff_upper",
+      "x": 1208,
       "y": 152,
-      "w": 29,
-      "h": 13
+      "w": 72,
+      "h": 240
     },
     {
-      "id": "col_6",
-      "x": 376,
-      "y": 61,
-      "w": 14,
-      "h": 40
+      "id": "east_roots_cliff",
+      "x": 1126,
+      "y": 392,
+      "w": 154,
+      "h": 328
     },
     {
-      "id": "col_7",
-      "x": 190,
-      "y": 95,
-      "w": 27,
-      "h": 16
-    },
-    {
-      "id": "col_8",
-      "x": 62,
-      "y": 60,
-      "w": 104,
-      "h": 16
-    },
-    {
-      "id": "col_9",
-      "x": 24,
-      "y": 147,
-      "w": 18,
-      "h": 62
-    },
-    {
-      "id": "col_10",
-      "x": 25,
-      "y": 277,
-      "w": 16,
-      "h": 30
-    },
-    {
-      "id": "col_11",
-      "x": 42,
-      "y": 288,
-      "w": 28,
-      "h": 20
-    },
-    {
-      "id": "col_12",
-      "x": 289,
-      "y": 225,
-      "w": 19,
-      "h": 47
-    },
-    {
-      "id": "col_13",
-      "x": 406,
-      "y": 171,
-      "w": 64,
-      "h": 40
-    },
-    {
-      "id": "col_14",
-      "x": 443,
-      "y": 214,
-      "w": 22,
-      "h": 42
-    },
-    {
-      "id": "col_15",
-      "x": 471,
-      "y": 175,
-      "w": 17,
-      "h": 26
-    },
-    {
-      "id": "col_16",
-      "x": 471,
-      "y": 202,
-      "w": 19,
-      "h": 28
-    },
-    {
-      "id": "col_17",
-      "x": 468,
-      "y": 227,
-      "w": 8,
-      "h": 19
-    },
-    {
-      "id": "col_18",
-      "x": 472,
-      "y": 233,
-      "w": 16,
-      "h": 37
-    },
-    {
-      "id": "col_19",
-      "x": 556,
-      "y": 152,
-      "w": 13,
-      "h": 87
-    },
-    {
-      "id": "col_20",
-      "x": 543,
-      "y": 199,
-      "w": 14,
+      "id": "chasm_upper_right_gap",
+      "x": 798,
+      "y": 146,
+      "w": 176,
       "h": 34
     },
     {
-      "id": "col_21",
-      "x": 538,
-      "y": 229,
-      "w": 11,
-      "h": 12
-    },
-    {
-      "id": "col_22",
-      "x": 599,
-      "y": 281,
-      "w": 8,
-      "h": 46
-    },
-    {
-      "id": "col_23",
-      "x": 584,
-      "y": 312,
-      "w": 12,
-      "h": 14
-    },
-    {
-      "id": "col_24",
-      "x": 531,
-      "y": 333,
-      "w": 19,
-      "h": 26
-    },
-    {
-      "id": "col_25",
-      "x": 509,
-      "y": 344,
-      "w": 23,
-      "h": 13
-    },
-    {
-      "id": "col_26",
-      "x": 502,
-      "y": 347,
-      "w": 8,
-      "h": 10
-    },
-    {
-      "id": "col_27",
-      "x": 430,
-      "y": 342,
-      "w": 32,
-      "h": 17
-    },
-    {
-      "id": "col_28",
-      "x": 472,
-      "y": 350,
-      "w": 29,
-      "h": 8
-    },
-    {
-      "id": "col_29",
-      "x": 522,
-      "y": 287,
-      "w": 17,
-      "h": 40
-    },
-    {
-      "id": "col_30",
-      "x": 339,
-      "y": 332,
-      "w": 21,
-      "h": 30
-    },
-    {
-      "id": "col_31",
-      "x": 347,
-      "y": 205,
-      "w": 14,
-      "h": 99
-    },
-    {
-      "id": "col_32",
-      "x": 338,
-      "y": 215,
-      "w": 8,
-      "h": 81
-    },
-    {
-      "id": "col_33",
-      "x": 331,
-      "y": 274,
-      "w": 8,
-      "h": 19
-    },
-    {
-      "id": "col_34",
-      "x": 119,
-      "y": 309,
-      "w": 16,
-      "h": 37
-    },
-    {
-      "id": "col_35",
-      "x": 137,
-      "y": 326,
-      "w": 18,
-      "h": 19
-    },
-    {
-      "id": "col_36",
-      "x": 218,
-      "y": 331,
-      "w": 37,
-      "h": 16
-    },
-    {
-      "id": "col_37",
-      "x": 403,
-      "y": 129,
-      "w": 19,
-      "h": 16
-    },
-    {
-      "id": "col_38",
-      "x": 458,
-      "y": 134,
-      "w": 12,
-      "h": 13
-    },
-    {
-      "id": "col_39",
-      "x": 490,
-      "y": 181,
-      "w": 22,
-      "h": 47
-    },
-    {
-      "id": "col_40",
-      "x": 415,
+      "id": "chasm_under_top_right_bridge",
+      "x": 775,
       "y": 218,
-      "w": 34,
-      "h": 49
+      "w": 265,
+      "h": 148
     },
     {
-      "id": "col_41",
-      "x": 413,
-      "y": 267,
-      "w": 17,
-      "h": 92
+      "id": "east_diagonal_void_right",
+      "x": 1040,
+      "y": 225,
+      "w": 55,
+      "h": 85
+    },
+    {
+      "id": "chasm_upper_left_under_bridge",
+      "x": 274,
+      "y": 224,
+      "w": 168,
+      "h": 50
+    },
+    {
+      "id": "chasm_left_central",
+      "x": 272,
+      "y": 318,
+      "w": 240,
+      "h": 148
+    },
+    {
+      "id": "chasm_center_left_of_stairs",
+      "x": 442,
+      "y": 224,
+      "w": 84,
+      "h": 96
+    },
+    {
+      "id": "chasm_center_right_of_stairs",
+      "x": 608,
+      "y": 224,
+      "w": 167,
+      "h": 72
+    },
+    {
+      "id": "chasm_mid_right_gap",
+      "x": 738,
+      "y": 352,
+      "w": 108,
+      "h": 68
+    },
+    {
+      "id": "chasm_between_bridge_and_se_stairs",
+      "x": 838,
+      "y": 466,
+      "w": 132,
+      "h": 34
+    },
+    {
+      "id": "chasm_lower_central_gap",
+      "x": 738,
+      "y": 468,
+      "w": 98,
+      "h": 252
+    },
+    {
+      "id": "south_void_west",
+      "x": 96,
+      "y": 592,
+      "w": 244,
+      "h": 128
+    },
+    {
+      "id": "south_void_mid_left",
+      "x": 340,
+      "y": 568,
+      "w": 226,
+      "h": 152
+    },
+    {
+      "id": "south_void_east",
+      "x": 836,
+      "y": 635,
+      "w": 290,
+      "h": 85
+    },
+    {
+      "id": "south_void_center_bottom",
+      "x": 566,
+      "y": 692,
+      "w": 172,
+      "h": 28
+    },
+    {
+      "id": "crystal_bottom_left",
+      "x": 98,
+      "y": 456,
+      "w": 66,
+      "h": 44
+    },
+    {
+      "id": "pillar_top_center_right",
+      "x": 674,
+      "y": 118,
+      "w": 36,
+      "h": 54
     }
   ],
   "props": [
     {
-      "id": "blight_font_glow",
+      "id": "arch_torch_left",
       "prop_type": "light_marker",
-      "x": 202,
-      "y": 252,
-      "width": 24,
-      "height": 24,
-      "light": {
-        "radius": 100,
-        "color": [
-          78,
-          240,
-          210
-        ],
-        "intensity": 1.3,
-        "flicker": true
-      }
-    },
-    {
-      "id": "glow_pool_top_left",
-      "prop_type": "light_marker",
-      "x": 76,
-      "y": 104,
-      "width": 16,
-      "height": 16,
-      "light": {
-        "radius": 95,
-        "color": [
-          60,
-          220,
-          255
-        ],
-        "intensity": 1.1,
-        "flicker": true
-      }
-    },
-    {
-      "id": "glow_pool_top_right",
-      "prop_type": "light_marker",
-      "x": 435,
-      "y": 64,
-      "width": 16,
-      "height": 16,
-      "light": {
-        "radius": 95,
-        "color": [
-          60,
-          220,
-          255
-        ],
-        "intensity": 1.1,
-        "flicker": true
-      }
-    },
-    {
-      "id": "glow_pool_bottom_left",
-      "prop_type": "light_marker",
-      "x": 80,
-      "y": 282,
-      "width": 16,
-      "height": 16,
-      "light": {
-        "radius": 90,
-        "color": [
-          60,
-          220,
-          255
-        ],
-        "intensity": 1.0,
-        "flicker": true
-      }
-    },
-    {
-      "id": "root_tree_aura",
-      "prop_type": "light_marker",
-      "x": 286,
+      "x": 1076,
       "y": 112,
       "width": 16,
       "height": 16,
       "light": {
         "radius": 110,
         "color": [
+          255,
           175,
+          85
+        ],
+        "intensity": 1.1,
+        "flicker": true
+      }
+    },
+    {
+      "id": "arch_torch_right",
+      "prop_type": "light_marker",
+      "x": 1150,
+      "y": 112,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 110,
+        "color": [
+          255,
+          175,
+          85
+        ],
+        "intensity": 1.1,
+        "flicker": true
+      }
+    },
+    {
+      "id": "root_tree_aura",
+      "prop_type": "light_marker",
+      "x": 576,
+      "y": 82,
+      "width": 20,
+      "height": 20,
+      "light": {
+        "radius": 160,
+        "color": [
+          185,
           75,
+          255
+        ],
+        "intensity": 1.2,
+        "flicker": true
+      }
+    },
+    {
+      "id": "blight_font_glow",
+      "prop_type": "light_marker",
+      "x": 632,
+      "y": 626,
+      "width": 28,
+      "height": 28,
+      "light": {
+        "radius": 140,
+        "color": [
+          70,
+          235,
+          255
+        ],
+        "intensity": 1.3,
+        "flicker": true
+      }
+    },
+    {
+      "id": "crystal_pool_nw",
+      "prop_type": "light_marker",
+      "x": 196,
+      "y": 102,
+      "width": 16,
+      "height": 16,
+      "light": {
+        "radius": 140,
+        "color": [
+          65,
+          225,
           255
         ],
         "intensity": 1.1,
@@ -533,20 +274,20 @@
       }
     },
     {
-      "id": "light_lamp_1",
+      "id": "crystal_pool_se",
       "prop_type": "light_marker",
-      "x": 469,
-      "y": 313,
+      "x": 996,
+      "y": 556,
       "width": 16,
       "height": 16,
       "light": {
-        "radius": 95,
+        "radius": 135,
         "color": [
-          255,
-          210,
-          130
+          65,
+          225,
+          255
         ],
-        "intensity": 1.0,
+        "intensity": 1.1,
         "flicker": true
       }
     }
@@ -555,9 +296,9 @@
     {
       "id": "exit_to_briarwood",
       "trigger_type": "transition",
-      "x": 532,
-      "y": 28,
-      "width": 42,
+      "x": 1090,
+      "y": 104,
+      "width": 54,
       "height": 42,
       "target_map_id": "briarwood_edge",
       "target_x": 213,
@@ -566,19 +307,19 @@
     {
       "id": "root_goliath_encounter",
       "trigger_type": "dialogue",
-      "x": 50,
-      "y": 261,
-      "width": 76,
-      "height": 48,
+      "x": 524,
+      "y": 168,
+      "width": 96,
+      "height": 54,
       "dialogue_id": "root_goliath_boss"
     },
     {
       "id": "blight_font_trigger",
       "trigger_type": "dialogue",
-      "x": 196,
-      "y": 248,
-      "width": 44,
-      "height": 40,
+      "x": 610,
+      "y": 608,
+      "width": 72,
+      "height": 62,
       "dialogue_id": "seal_blight_font_dialogue"
     }
   ]

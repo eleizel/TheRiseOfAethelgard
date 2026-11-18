@@ -100,6 +100,28 @@ QUEST_REGISTRY: Final[dict[str, QuestDefinition]] = {
             items={"bloomweave_vestments": 1},
         ),
     ),
+    "find_lyra": QuestDefinition(
+        id="find_lyra",
+        title="Find Lyra",
+        category=QuestCategory.SIDE,
+        description=(
+            "Elder Tomas hasn't seen Lyra since she headed south into Briarwood Verge "
+            "at sunrise. Search the woods and bring her back safely."
+        ),
+        auto_start=False,
+        steps=(
+            QuestStep(
+                id="rescue_lyra",
+                description="Search Briarwood Verge and rescue Lyra",
+                objective_type=ObjectiveType.FLAG_SET,
+                target_id="lyra_rescued",
+            ),
+        ),
+        reward=QuestReward(
+            exp=80,
+            gold=75,
+        ),
+    ),
     "whispers_in_the_roots": QuestDefinition(
         id="whispers_in_the_roots",
         title="Whispers in the Roots",

@@ -13,7 +13,7 @@ from pygame_gui.elements import UIButton, UIImage, UILabel, UIPanel, UITextBox
 from src.core.events import AudioCue
 from src.core.fsm import GameMode
 from src.data.dialogues import get_dialogue_tree
-from src.data.enemies import create_enemy
+from src.data.enemies import ENEMY_TEMPLATES, create_enemy, scaled_boss_level
 from src.frontends.pygame_ce.combat_animator import EnemySpriteManager
 from src.frontends.pygame_ce.music_engine import DynamicMusicEngine
 from src.frontends.pygame_ce.ui_manager import (
@@ -373,7 +373,12 @@ class DialogueView:
             self.session.party.quest_flags["met_elder"] = True
             self.session.quest_manager.on_flag_set("met_elder")
         elif trigger == "START_BOSS_COMBAT":
-            treant = create_enemy("corrupted_treant", "treant_boss")
+            avg_lvl = self.session.party.average_active_level
+            treant = create_enemy(
+                "corrupted_treant",
+                "treant_boss",
+                level=scaled_boss_level(ENEMY_TEMPLATES["corrupted_treant"]["level"], avg_lvl),
+            )
             self.session.combat = RoundCombat(
                 party=self.session.party,
                 enemies=[treant],
@@ -382,9 +387,15 @@ class DialogueView:
             )
             self.session.transition_to(GameMode.COMBAT)
         elif trigger == "START_SPECIAL_COMBAT":
-            abomination = create_enemy("mandragora_matron", "mandragora_matron")
-            hound1 = create_enemy("bramble_hound", "bramble_hound_1")
-            hound2 = create_enemy("bramble_hound", "bramble_hound_2")
+            avg_lvl = self.session.party.average_active_level
+            abomination = create_enemy(
+                "mandragora_matron",
+                "mandragora_matron",
+                level=scaled_boss_level(ENEMY_TEMPLATES["mandragora_matron"]["level"], avg_lvl),
+            )
+            hound_lvl = scaled_boss_level(ENEMY_TEMPLATES["bramble_hound"]["level"], avg_lvl)
+            hound1 = create_enemy("bramble_hound", "bramble_hound_1", level=hound_lvl)
+            hound2 = create_enemy("bramble_hound", "bramble_hound_2", level=hound_lvl)
             self.session.combat = RoundCombat(
                 party=self.session.party,
                 enemies=[hound1, abomination, hound2],
@@ -411,7 +422,12 @@ class DialogueView:
             if qm.is_step_active("whispers_in_the_roots", "talk_elder_tomas"):
                 qm.on_dialogue_choice("elder_tomas_whispers", "elder_whispers_choices", 0)
         elif trigger == "START_ROOT_GOLIATH_COMBAT":
-            goliath = create_enemy("root_goliath", "root_goliath")
+            avg_lvl = self.session.party.average_active_level
+            goliath = create_enemy(
+                "root_goliath",
+                "root_goliath",
+                level=scaled_boss_level(ENEMY_TEMPLATES["root_goliath"]["level"], avg_lvl),
+            )
             self.session.combat = RoundCombat(
                 party=self.session.party,
                 enemies=[goliath],
@@ -423,6 +439,15 @@ class DialogueView:
             if self.session.quest_manager.is_step_completed("whispers_in_the_roots", "defeat_root_guardian"):
                 self.session.party.quest_flags["root_font_sealed"] = True
                 self.session.quest_manager.on_flag_set("root_font_sealed")
+        elif trigger == "START_QUEST_FIND_LYRA":
+            if not self.session.has_character("lyra"):
+                self.session.quest_manager.start_quest("find_lyra")
+        elif trigger.startswith("UNLOCK_CHAR:"):
+            char_id = trigger.split(":", 1)[1].strip()
+            self.session.unlock_character(char_id)
+            if char_id == "lyra":
+                self.session.party.quest_flags["lyra_rescued"] = True
+                self.session.quest_manager.on_flag_set("lyra_rescued")
         elif trigger.startswith("ENTER_MAP:"):
             parts = trigger.split(":")
             if len(parts) == 4:

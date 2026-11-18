@@ -63,15 +63,33 @@ class GameSession:
             return False
         self.party.gold -= cost
         for member in self.party.active_members + self.party.reserve_members:
-            member.current_hp = member.base_stats.max_hp
-            member.current_mp = member.base_stats.max_mp
+            eff = member.effective_stats
+            member.current_hp = eff.max_hp
+            member.current_mp = eff.max_mp
             member.clear_negative_statuses()
         return True
 
+    def has_character(self, char_id: str) -> bool:
+        """Return True if char_id is already unlocked in active or reserve party."""
+        return any(m.id == char_id for m in self.party.active_members + self.party.reserve_members)
+
+    def unlock_character(self, char_id: str, skill_points_bonus: int = 0) -> Any | None:
+        """Unlock a new companion at Rowan's current level with class stat growth applied."""
+        if self.has_character(char_id):
+            return None
+        rowan = next((m for m in self.party.active_members + self.party.reserve_members if m.id == "rowan"), None)
+        target_level = rowan.level if rowan is not None else 1
+        char = create_character(char_id, level=target_level)
+        if skill_points_bonus > 0:
+            char.skill_points += skill_points_bonus
+        self.party.add_character(char)
+        self.skill_trees[char_id] = create_character_skill_tree(char_id)
+        return char
+
     def initialize_new_game(self) -> None:
-        """Create new game state starting in Oakhaven with 4 core companions."""
+        """Create new game state starting in Oakhaven with Rowan and Rachel."""
         self.party = Party(gold=250)
-        for char_id in ["rowan", "lyra", "caelen", "melissa", "jack", "rachel"]:
+        for char_id in ["rowan", "rachel"]:
             char = create_character(char_id, level=1)
             char.skill_points = 2  # Starting talent points to test skill trees immediately
             self.party.add_character(char)

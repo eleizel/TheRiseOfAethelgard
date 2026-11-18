@@ -121,6 +121,11 @@ def test_jack_hunter_parity_and_starting_reserve():
 
     session = GameSession(seed=42)
     session.initialize_new_game()
+    assert [m.id for m in session.party.active_members] == ["rowan", "rachel"]
+    assert session.party.reserve_members == []
+
+    for cid in ("lyra", "caelen", "melissa", "jack"):
+        session.unlock_character(cid)
     assert len(session.party.active_members) == 4
     assert any(m.id == "jack" for m in session.party.reserve_members)
 
@@ -156,15 +161,15 @@ def test_party_view_keyboard_actions():
     view.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN))
     assert view.sub_menu_open is False
 
-    # Move down to slot 1 (Lyra), open sub-menu, choose Bench to Reserve
+    # Move down to slot 1 (Rachel), open sub-menu, choose Bench to Reserve
     view.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_DOWN))
     view.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN))
     assert view.sub_menu_open is True
     bench_idx = next(i for i, (aid, _) in enumerate(view.sub_menu_options) if aid == "bench")
     view.sub_menu_index = bench_idx
     view.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN))
-    assert len(session.party.active_members) == 3
-    assert any(m.id == "lyra" for m in session.party.reserve_members)
+    assert len(session.party.active_members) == 1
+    assert any(m.id == "rachel" for m in session.party.reserve_members)
 
     # Esc exits back to exploration
     view.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE))
@@ -180,7 +185,7 @@ def test_rachel_witch_character_equipment_and_skill_tree():
     session = GameSession(seed=42)
     session.initialize_new_game()
 
-    rachel = next((m for m in session.party.reserve_members if m.id == "rachel"), None)
+    rachel = next((m for m in session.party.active_members if m.id == "rachel"), None)
     assert rachel is not None
     assert rachel.name == "Rachel"
     assert rachel.class_id == "witch"

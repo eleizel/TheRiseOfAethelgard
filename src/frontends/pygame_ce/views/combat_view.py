@@ -183,6 +183,12 @@ class CombatView:
         # Battle End confirmation
         if self.combat.phase in (CombatPhase.VICTORY, CombatPhase.ESCAPED):
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                if (
+                    self.combat.phase == CombatPhase.VICTORY
+                    and any(e.sprite_id == "mandragora_matron" for e in self.combat.enemies)
+                    and not self.session.has_character("lyra")
+                ):
+                    self.session.pending_dialogue_id = "lyra_rescue_dialogue"
                 self.session.transition_to(GameMode.EXPLORATION)
             return
 

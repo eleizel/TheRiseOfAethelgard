@@ -253,6 +253,8 @@ class ExplorationView:
         if self.music_engine:
             self.music_engine.set_context(MusicContext.EXPLORATION)
         self._build_hud()
+        if getattr(self.session, "pending_dialogue_id", None):
+            self.session.transition_to(GameMode.DIALOGUE)
 
     def on_exit(self) -> None:
         for attr in ("_area_panel", "_leader_panel", "_bottom_panel", "_quest_panel", "_toast_panel"):
@@ -418,7 +420,10 @@ class ExplorationView:
         if self.is_moving:
             dist = math.sqrt(delta_x ** 2 + delta_y ** 2)
             if self.encounter_system.record_movement(dist, self.current_map.id):
-                enemies = generate_encounter_for_map(self.current_map.id)
+                enemies = generate_encounter_for_map(
+                    self.current_map.id,
+                    party_avg_level=self.session.party.average_active_level,
+                )
                 self.session.combat = RoundCombat(
                     party=self.session.party,
                     enemies=enemies,

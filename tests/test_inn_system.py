@@ -21,8 +21,8 @@ def test_inn_rest_success() -> None:
     assert session.party.gold == 50
 
     for member in session.party.active_members + session.party.reserve_members:
-        assert member.current_hp == member.base_stats.max_hp
-        assert member.current_mp == member.base_stats.max_mp
+        assert member.current_hp == member.effective_stats.max_hp
+        assert member.current_mp == member.effective_stats.max_mp
 
 
 def test_inn_rest_insufficient_gold() -> None:
@@ -67,7 +67,7 @@ def test_inn_dialogue_integration() -> None:
     assert dialogue_view.current_node is not None
     assert dialogue_view.current_node.id == "inn_rest_success"
     assert session.party.gold == 50
-    assert all(m.current_hp == m.base_stats.max_hp for m in session.party.active_members)
+    assert all(m.current_hp == m.effective_stats.max_hp for m in session.party.active_members)
 
     # Rest failure when gold < 50
     session.party.gold = 10
