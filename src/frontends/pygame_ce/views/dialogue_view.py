@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
 import pygame
@@ -396,8 +397,14 @@ class DialogueView:
             self.session.party.gold += 150
             for char in self.session.party.active_members:
                 char.skill_points += 2
-        elif trigger == "OPEN_PARTY_COMPOSITION":
+        elif trigger in ("OPEN_PARTY_COMPOSITION", "open_party_management"):
             self.session.transition_to(GameMode.PARTY)
+        elif trigger == "open_inn_rest":
+            if self.session.rest_at_inn(50):
+                self._rest_fade_timer = self._rest_fade_duration
+                self._advance_to_node("inn_rest_success")
+            else:
+                self._advance_to_node("inn_rest_failure")
         elif trigger == "START_QUEST_WHISPERS_IN_THE_ROOTS":
             qm = self.session.quest_manager
             qm.start_quest("whispers_in_the_roots")
@@ -435,6 +442,8 @@ class DialogueView:
 
     def update(self, dt: float) -> None:
         self.time_sec += dt
+        if self._rest_fade_timer > 0.0:
+            self._rest_fade_timer = max(0.0, self._rest_fade_timer - dt)
         if self.current_node and self.displayed_chars < len(self.current_node.text):
             self.displayed_chars += int(self.typewriter_speed * dt) + 1
             self.displayed_chars = min(self.displayed_chars, len(self.current_node.text))
@@ -446,8 +455,14 @@ class DialogueView:
                 self._build_choices_ui()
 
     def draw(self, surface: pygame.Surface) -> None:
-        """World-canvas draw is a no-op; DialogueView renders via the HD pygame-gui overlay."""
-        return
+        """Draw optional rest fade overlay; dialogue UI renders via HD pygame-gui."""
+        if self._rest_fade_timer > 0.0 and self._rest_fade_duration > 0.0:
+            ratio = self._rest_fade_timer / self._rest_fade_duration
+            alpha = int(200 * math.sin(ratio * math.pi))
+            if alpha > 0:
+                fade = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+                fade.fill((10, 8, 18, alpha))
+                surface.blit(fade, (0, 0))
 
     def _build_portrait_surface(self, speaker_id: str, size: int = 144) -> pygame.Surface:
         surf = pygame.Surface((size, size), pygame.SRCALPHA)
