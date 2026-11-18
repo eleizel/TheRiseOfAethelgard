@@ -235,3 +235,37 @@ To inflict a status back onto an attacker when hit (e.g., *Bramble Mail* inflict
 - **Dialogue Trees:** Defined in `DIALOGUE_REGISTRY` inside `src/data/dialogues.py`.
 - **Triggers:** Add `action_trigger="<KEY>"` on a `DialogueNode` and handle `<KEY>` in `DialogueView._execute_action_trigger()` (`src/frontends/pygame_ce/views/dialogue_view.py`) to set `quest_flags`, start combats, open `GameMode.PARTY`, or start quests.
 - **NPC Placement:** Add NPC sprites/dialogue trigger zones in `assets/maps/<map_id>/map.json` (or `map_data.py`).
+
+---
+
+## 10. Visual Asset Generation, Map Slicing & Quest Linkage
+
+### A. Map Perspective, Screen Unit & Slicing
+- **Perspective & Style:** Overworld maps MUST use a strictly **top-down / 3/4 overhead classic 16-bit JRPG** camera (Chrono Trigger / SNES RPG style — matching `assets/maps/briarwood_verge/background.png` and `assets/maps/oakhaven_village_main/background.png`). Never use side-view or side-scrolling platformer perspectives.
+- **Screen Unit & Scale:** Minimum screen unit is **`640x360`** (`16:9`). All doors, furniture, chairs, tables, paths, and architecture MUST be proportioned consistently for **`64x80`** adult characters.
+- **16:9 vs Multi-Screen Slicing (`map.json`):**
+  - If a map is `16:9` (`640x360` or `1280x720`), use `"background": {"type": "single_composite", "image": "assets/maps/<map_id>/background.png"}`.
+  - If a map is **not** `16:9` (e.g., `640x720` or `640x1080`), generate the full composite map first, slice it into **`640x360`** tiles (`slice_0.png`, `slice_1.png`, ...), and configure `map.json` with:
+    ```json
+    "background": {
+      "type": "slices",
+      "slices": [
+        {"image": "assets/maps/<map_id>/slice_0.png", "x": 0, "y": 0, "w": 640, "h": 360},
+        {"image": "assets/maps/<map_id>/slice_1.png", "x": 0, "y": 360, "w": 640, "h": 360}
+      ]
+    }
+    ```
+
+### B. Canonical Sprite Sizes, Framing & Grounding (RGBA PNG)
+- **Single-Subject Rule:** Static NPC, enemy, and prop sprites MUST contain **one single centered figure** on a transparent RGBA background — NEVER a multi-pose grid or sprite sheet (animated walk/attack sheets belong exclusively in dedicated sheet files).
+- **Bottom Grounding (No Floating):** Position the sprite's feet/base **3–5 px above the bottom edge** of the PNG, horizontally centered, filling ~80–90% of the canvas height.
+- **Canonical Dimensions (`width x height`):**
+  - Child NPC: **`64x64`** (e.g., `nina_02_gatito`)
+  - Adult NPC: **`64x80`** (e.g., `caelen`, `npc_02_posadera`)
+  - Large Humanoid NPC: **`64x96`**
+  - Normal Enemy: **`80x80`** (e.g., `bramble_hound`)
+  - Elite Enemy: **`112x112`** (e.g., `mandragora_matron`)
+  - Boss Enemy: **`128x144`** (e.g., `corrupted_treant`)
+
+### C. Main Quest Chain Linkage
+- Any new `QuestCategory.MAIN` quest added to `src/data/quests.py` MUST explicitly link to the **last existing `QuestCategory.MAIN` quest** declared in `QUEST_REGISTRY` (via `prereq_quests=(<last_main_quest_id>,)` plus either `auto_start=True` or an explicit `start_quest` / dialogue trigger from the previous quest's completion NPC/flags).
