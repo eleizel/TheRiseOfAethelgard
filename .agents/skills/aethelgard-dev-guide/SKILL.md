@@ -74,6 +74,11 @@ python -m ruff check src tests
 2. **Grant the Skill:**
    - **Starting skill:** Add `"ember_volley"` to `ClassDefinition.starting_abilities` in `src/data/classes.py`.
    - **Unlockable skill:** Add a `SkillNode` with `node_type=NodeType.ABILITY` and `unlocked_ability_id="ember_volley"` in `src/data/skill_trees.py`.
+3. **Optional Visual VFX & Character Poses (`src/frontends/pygame_ce/skill_vfx.py`):**
+   - Register a `SkillVFXConfig` in `SKILL_VFX_REGISTRY` with `effect_id`, `caster_anim` (`"lunge"`, `"spell"`, `"none"`), `total_duration` (`1.50 s`), `impact_time`, and `phases: tuple[VFXPhase, ...]`.
+   - Each `VFXPhase` specifies `prefix`, `placement` (`"caster"`, `"projectile_to_target"`, `"target_each"`, `"target_group_center"`), `start_time`, `duration`, `offset`, `arc_height`, `scale`, and `flip_for_enemy`.
+   - Assets in `assets/sprites/effects/<effect_id>/` support either numbered PNGs (`<prefix>_00.png..`) or auto-sliced grids (`<prefix>_<cols>x<rows>.png`, e.g. `charge_8x1.png`, `buff_4x2.png`).
+   - Per-character attack/cast poses in `assets/sprites/characters/<char_id>/attack/` (`cast_00.png..`, `cast_8x1.png`, `attack_00.png..`, or `<ability_id>_00.png..`) are picked up automatically by `EnemySpriteManager`. If no VFX or pose exists, `CombatView` falls back safely to a procedural lunge + `1.50 s` action-banner presentation.
 
 ---
 
@@ -266,3 +271,4 @@ All new sprites **MUST** strictly follow these pixel dimensions (enforced across
 | **Boss (`BOSS`)** | `128×144` | `root_goliath.png`, `corpse_treant.png` |
 
 - `map_editor.py` stamps NPC/sprite props at their **native image dimensions** without scaling, so exporting sprites at the exact target size guarantees consistent world proportions.
+- For complete art-style rules, color/lighting guidelines, VFX sheets, maps, combat backdrops, and how every asset is loaded in code, see the dedicated **`aethelgard-asset-guide`** skill (`.agents/skills/aethelgard-asset-guide/SKILL.md`).

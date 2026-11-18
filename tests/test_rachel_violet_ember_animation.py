@@ -108,3 +108,101 @@ def test_violet_ember_two_phase_charge_and_projectile_frames_load():
             assert proj.get_size() == (64, 80)
     finally:
         pygame.quit()
+
+
+def test_spritesheet_slicing_and_character_cast_pose(tmp_path):
+    assets_root = tmp_path / "assets"
+    enemy_dir = assets_root / "sprites" / "enemies"
+    attack_dir = assets_root / "sprites" / "characters" / "rowan" / "attack"
+    effect_dir = assets_root / "sprites" / "effects" / "iron_bastion"
+    enemy_dir.mkdir(parents=True)
+    attack_dir.mkdir(parents=True)
+    effect_dir.mkdir(parents=True)
+
+    # 4x1 cast strip for Rowan (256x80 -> 4 frames of 64x80)
+    Image.new("RGBA", (256, 80), (200, 180, 90, 255)).save(attack_dir / "cast_4x1.png")
+    # 4x2 buff sheet (128x64 -> 8 frames of 32x32)
+    Image.new("RGBA", (128, 64), (100, 210, 255, 255)).save(effect_dir / "buff_4x2.png")
+
+    manager = EnemySpriteManager(assets_dir=enemy_dir)
+    assert manager.get_character_action_frame_count("rowan", "cast") == 4
+    cast_frame = manager.get_character_action_frame("rowan", "cast", 3)
+    assert cast_frame is not None
+    assert cast_frame.get_size() == (64, 80)
+
+    assert manager.get_effect_frame_count("iron_bastion", "buff") == 8
+    buff_frame = manager.get_projectile_frame("iron_bastion", 7, prefix="buff")
+    assert buff_frame is not None
+    assert buff_frame.get_size() == (32, 32)
+
+
+def test_generic_skill_vfx_placements_and_violet_ember():
+    import pygame
+
+    from src.core.session import GameSession
+    from src.data.enemies import create_enemy
+    from src.frontends.pygame_ce.skill_vfx import SkillVFXConfig, VFXPhase
+    from src.frontends.pygame_ce.views.combat_view import CombatView
+    from src.systems.combat.round_combat import ActionResult, RoundCombat
+
+    pygame.init()
+    try:
+        session = GameSession(seed=42)
+        session.initialize_new_game()
+        enemies = [
+            create_enemy("bramble_hound", "e1"),
+            create_enemy("spore_pod", "e2"),
+        ]
+        session.combat = RoundCombat(party=session.party, enemies=enemies, seed=42)
+        view = CombatView(session=session)
+        view.on_enter()
+
+        # 1. Violet Ember spawns charge (caster) + projectile (projectile_to_target)
+        rachel = next(c for c in session.party.active_members if c.id == "rachel")
+        ve_res = ActionResult(
+            source_name=rachel.name,
+            action_name="Violet Ember",
+            target_names=[enemies[0].name],
+            damage_dealt=[42],
+            healing_dealt=[],
+            is_crit=False,
+            status_applied=None,
+            message="Rachel used Violet Ember!",
+            ability_id="violet_ember",
+            target_ids=[enemies[0].id],
+        )
+        view._trigger_attacker_animation(ve_res)
+        assert len(view.active_vfx_instances) == 2
+        assert {inst["prefix"] for inst in view.active_vfx_instances} == {"charge", "projectile"}
+
+        surf = pygame.Surface((1280, 720), pygame.SRCALPHA)
+        view._draw_active_vfx(surf)
+
+        # 2. Party-wide target_each + target_group_center spawning
+        view.active_vfx_instances.clear()
+        party_ids = [m.id for m in session.party.active_members]
+        party_names = [m.name for m in session.party.active_members]
+        buff_res = ActionResult(
+            source_name="Rowan",
+            action_name="Aegis Rally",
+            target_names=party_names,
+            damage_dealt=[],
+            healing_dealt=[],
+            is_crit=False,
+            status_applied="DEFENSE_UP",
+            message="Rowan bolstered the party!",
+            ability_id="aegis_rally",
+            target_ids=party_ids,
+        )
+        buff_cfg = SkillVFXConfig(
+            effect_id="violet_ember",
+            caster_anim="lunge",
+            phases=(
+                VFXPhase(prefix="charge", placement="target_each", start_time=0.0, duration=0.8, frame_count=8),
+                VFXPhase(prefix="projectile", placement="target_group_center", start_time=0.1, duration=0.5, frame_count=8),
+            ),
+        )
+        view._spawn_skill_vfx(buff_res, buff_cfg)
+        assert len(view.active_vfx_instances) == len(party_ids) + 1
+    finally:
+        pygame.quit()

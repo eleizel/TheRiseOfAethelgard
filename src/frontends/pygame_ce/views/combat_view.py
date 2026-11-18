@@ -17,6 +17,7 @@ from src.frontends.pygame_ce.combat_animator import CombatantAnimState, EnemySpr
 from src.frontends.pygame_ce.combat_background import CombatBackgroundManager
 from src.frontends.pygame_ce.font_utils import get_font
 from src.frontends.pygame_ce.music_engine import DynamicMusicEngine, resolve_music_context
+from src.frontends.pygame_ce.skill_vfx import SkillVFXConfig, get_skill_vfx_config
 from src.frontends.pygame_ce.ui_manager import (
     GameUIManager,
     StatBar,
@@ -67,7 +68,7 @@ class CombatView:
         self.execution_timer = 0.0
         self.execution_delay = 0.15  # Brief pause between queued combat actions
         self.floating_texts: list[dict] = []
-        self.rachel_projectiles: list[dict[str, float | str]] = []
+        self.active_vfx_instances: list[dict[str, Any]] = []
         self._active_action_anim: dict[str, Any] | None = None
         self._pending_prev_log: str = ""
 
@@ -107,7 +108,7 @@ class CombatView:
         self.skill_index = 0
         self.target_index = 0
         self.floating_texts.clear()
-        self.rachel_projectiles.clear()
+        self.active_vfx_instances.clear()
         self._active_action_anim = None
         self._pending_prev_log = ""
         self.execution_timer = 0.0
@@ -387,13 +388,11 @@ class CombatView:
             )
             st.update(dt, is_alive=char.is_alive)
 
-        # Update active spell projectiles in world-space reference coordinates.
-        for projectile in list(self.rachel_projectiles):
-            projectile["elapsed"] = float(projectile["elapsed"]) + max(0.0, dt)
-            if float(projectile["elapsed"]) >= (
-                float(projectile["launch_delay"]) + float(projectile["duration"])
-            ):
-                self.rachel_projectiles.remove(projectile)
+        # Update active skill VFX instances in world-space reference coordinates.
+        for inst in list(self.active_vfx_instances):
+            inst["elapsed"] = float(inst["elapsed"]) + max(0.0, dt)
+            if float(inst["elapsed"]) >= float(inst["start_time"]) + float(inst["duration"]):
+                self.active_vfx_instances.remove(inst)
 
         # Progress active action banner + animation timing
         if self._active_action_anim is not None:
@@ -434,7 +433,7 @@ class CombatView:
 
         self._draw_enemies(surface)
         self._draw_party(surface)
-        self._draw_rachel_projectiles(surface)
+        self._draw_active_vfx(surface)
         self._draw_action_banner(surface)
 
         sw_s, sh_s = surface.get_size()
@@ -454,6 +453,7 @@ class CombatView:
             "Flee",
             "Stunned",
         )
+        vfx_cfg = get_skill_vfx_config(res.ability_id)
         if is_basic:
             fade_in = 0.14
             anim_duration = 0.75
@@ -461,9 +461,9 @@ class CombatView:
             impact_offset = 0.30
         else:
             fade_in = 0.20
-            anim_duration = 1.50
+            anim_duration = vfx_cfg.total_duration if vfx_cfg else 1.50
             fade_out = 0.30
-            impact_offset = 1.15 if res.ability_id == "violet_ember" else 0.75
+            impact_offset = vfx_cfg.impact_time if vfx_cfg else 0.75
 
         self._active_action_anim = {
             "res": res,
@@ -503,26 +503,39 @@ class CombatView:
             self._active_action_anim = None
 
     def _trigger_attacker_animation(self, res: Any) -> None:
-        """Start the caster/attacker sprite animation for the resolved action."""
+        """Start the caster/attacker sprite animation and any registered skill VFX phases."""
         if not self.combat:
             return
+        vfx_cfg = get_skill_vfx_config(res.ability_id)
         attacker_char = next(
             (c for c in self.session.party.active_members if c.name == res.source_name),
             None,
         )
         if attacker_char and attacker_char.id in self.party_anim_states:
             actor_state = self.party_anim_states[attacker_char.id]
-            if attacker_char.id.lower() == "rachel" and res.ability_id == "violet_ember":
-                actor_state.trigger_spell(duration=0.8, frame_count=8)
-                target_ids = res.target_ids or []
-                target_enemy = next(
-                    (e for e in self.combat.enemies if e.id in target_ids and e.is_alive),
-                    None,
+            caster_mode = vfx_cfg.caster_anim if vfx_cfg else "lunge"
+            is_skill = res.ability_id not in (None, "basic_attack")
+            has_cast_pose = (
+                is_skill
+                and self.sprite_manager.get_character_action_frame_count(attacker_char.id, "cast") > 0
+            )
+            if caster_mode == "spell" or (caster_mode == "lunge" and has_cast_pose):
+                pose_id = res.ability_id or "cast"
+                pose_count = self.sprite_manager.get_character_action_frame_count(
+                    attacker_char.id, pose_id
                 )
-                if target_enemy is not None:
-                    self._spawn_rachel_violet_projectile(attacker_char, target_enemy)
-            else:
-                actor_state.trigger_attack(distance=34.0)
+                if pose_count <= 0:
+                    pose_id = "cast"
+                    pose_count = max(
+                        1, self.sprite_manager.get_character_action_frame_count(attacker_char.id, "cast")
+                    )
+                spell_dur = vfx_cfg.spell_duration if vfx_cfg else 0.80
+                actor_state.trigger_spell(duration=spell_dur, frame_count=pose_count, action_id=pose_id)
+            elif caster_mode == "lunge":
+                actor_state.trigger_attack(distance=34.0, action_id=res.ability_id or "attack")
+
+            if vfx_cfg is not None:
+                self._spawn_skill_vfx(res, vfx_cfg, is_enemy_caster=False)
             return
 
         attacker_enemy = next(
@@ -532,7 +545,11 @@ class CombatView:
         if attacker_enemy:
             ekey = self._enemy_anim_key(attacker_enemy)
             if ekey in self.enemy_anim_states:
-                self.enemy_anim_states[ekey].trigger_attack(distance=34.0)
+                caster_mode = vfx_cfg.caster_anim if vfx_cfg else "lunge"
+                if caster_mode != "none":
+                    self.enemy_anim_states[ekey].trigger_attack(distance=34.0)
+            if vfx_cfg is not None:
+                self._spawn_skill_vfx(res, vfx_cfg, is_enemy_caster=True)
 
     def _trigger_action_impact(self, res: Any) -> None:
         """Apply hurt recoil, hit-flash, and floating damage/healing numbers at impact."""
@@ -661,86 +678,197 @@ class CombatView:
         panel.set_alpha(alpha)
         surface.blit(panel, (box_x, box_y))
 
-    def _spawn_rachel_violet_projectile(
-        self, caster: Character, target: Enemy
-    ) -> None:
-        """Queue the violet flame to leave Rachel's hand and travel to its target."""
+    def _get_party_anchor(self, char: Character) -> tuple[float, float]:
         party_index = next(
-            (i for i, member in enumerate(self.session.party.active_members) if member.id == caster.id),
+            (i for i, member in enumerate(self.session.party.active_members) if member.id == char.id),
             0,
         )
         party_row, party_col = divmod(party_index, 2)
-        caster_x = 915.0 + party_col * 175.0
-        caster_foot_y = 340.0 + party_row * 124.0
+        return 915.0 + party_col * 175.0, 340.0 + party_row * 124.0
 
+    def _get_enemy_anchor(self, enemy: Enemy) -> tuple[float, float]:
         enemy_count = len(self.combat.enemies) if self.combat else 1
-        enemy_index = self.combat.enemies.index(target) if self.combat else 0
-        is_elite = target.tier in (EnemyTier.ELITE, EnemyTier.BOSS)
+        enemy_index = self.combat.enemies.index(enemy) if (self.combat and enemy in self.combat.enemies) else 0
+        is_elite = enemy.tier in (EnemyTier.ELITE, EnemyTier.BOSS)
         if enemy_count == 1:
-            target_x = 280.0
-            target_foot_y = 472.0 if is_elite else 432.0
-        elif enemy_count == 2:
-            target_x = 200.0 if enemy_index == 0 else 370.0
-            target_foot_y = 362.0 if enemy_index == 0 else 464.0
+            return 280.0, 472.0 if is_elite else 432.0
+        if enemy_count == 2:
+            return (200.0 if enemy_index == 0 else 370.0), (362.0 if enemy_index == 0 else 464.0)
+        return 170.0 + (enemy_index % 2) * 195.0, min(472.0, 336.0 + enemy_index * 64.0)
+
+    def _resolve_vfx_targets(self, res: Any) -> list[tuple[float, float]]:
+        """Resolve world-space anchor coordinates for all targets of an action."""
+        if not self.combat:
+            return []
+        anchors: list[tuple[float, float]] = []
+        target_ids = res.target_ids or []
+        for tid in target_ids:
+            enemy = next((e for e in self.combat.enemies if e.id == tid), None)
+            if enemy is not None:
+                anchors.append(self._get_enemy_anchor(enemy))
+                continue
+            char = next((c for c in self.session.party.active_members if c.id == tid), None)
+            if char is not None:
+                anchors.append(self._get_party_anchor(char))
+        if anchors:
+            return anchors
+
+        for tname in res.target_names or []:
+            enemy = next((e for e in self.combat.enemies if e.name == tname), None)
+            if enemy is not None:
+                anchors.append(self._get_enemy_anchor(enemy))
+                continue
+            char = next((c for c in self.session.party.active_members if c.name == tname), None)
+            if char is not None:
+                anchors.append(self._get_party_anchor(char))
+        return anchors
+
+    def _spawn_skill_vfx(
+        self, res: Any, vfx_cfg: SkillVFXConfig, is_enemy_caster: bool = False
+    ) -> None:
+        """Instantiate all declarative VFXPhase entries for a skill action."""
+        if not self.combat:
+            return
+        if is_enemy_caster:
+            caster_enemy = next((e for e in self.combat.enemies if e.name == res.source_name), None)
+            caster_anchor = self._get_enemy_anchor(caster_enemy) if caster_enemy else (280.0, 432.0)
         else:
-            target_x = 170.0 + (enemy_index % 2) * 195.0
-            target_foot_y = min(472.0, 336.0 + enemy_index * 64.0)
+            caster_char = next(
+                (c for c in self.session.party.active_members if c.name == res.source_name),
+                None,
+            )
+            caster_anchor = self._get_party_anchor(caster_char) if caster_char else (915.0, 340.0)
 
-        self.rachel_projectiles.append(
-            {
-                "elapsed": 0.0,
-                "launch_delay": 0.65,
-                "duration": 0.50,
-                "start_x": caster_x - 54.0,
-                "start_y": caster_foot_y - 102.0,
-                "end_x": target_x + 24.0,
-                "end_y": target_foot_y - 54.0,
-            }
-        )
+        target_anchors = self._resolve_vfx_targets(res)
+        if not target_anchors:
+            target_anchors = [caster_anchor]
 
-    def _draw_rachel_projectiles(self, surface: pygame.Surface) -> None:
-        if not self.rachel_projectiles:
+        for phase in vfx_cfg.phases:
+            frame_count = phase.frame_count or self.sprite_manager.get_effect_frame_count(
+                vfx_cfg.effect_id, phase.prefix
+            )
+            if frame_count <= 0:
+                continue
+
+            flip_x = is_enemy_caster and phase.flip_for_enemy
+            dx = -phase.offset[0] if flip_x else phase.offset[0]
+            dy = phase.offset[1]
+
+            if phase.placement == "caster":
+                self.active_vfx_instances.append(
+                    {
+                        "effect_id": vfx_cfg.effect_id,
+                        "prefix": phase.prefix,
+                        "frame_count": frame_count,
+                        "elapsed": 0.0,
+                        "start_time": phase.start_time,
+                        "duration": max(0.01, phase.duration),
+                        "start_x": caster_anchor[0] + dx,
+                        "start_y": caster_anchor[1] + dy,
+                        "end_x": caster_anchor[0] + dx,
+                        "end_y": caster_anchor[1] + dy,
+                        "arc_height": 0.0,
+                        "scale": phase.scale,
+                        "flip_x": flip_x,
+                    }
+                )
+            elif phase.placement == "projectile_to_target":
+                sx_pt = caster_anchor[0] + dx
+                sy_pt = caster_anchor[1] + dy
+                for tx, ty in target_anchors:
+                    self.active_vfx_instances.append(
+                        {
+                            "effect_id": vfx_cfg.effect_id,
+                            "prefix": phase.prefix,
+                            "frame_count": frame_count,
+                            "elapsed": 0.0,
+                            "start_time": phase.start_time,
+                            "duration": max(0.01, phase.duration),
+                            "start_x": sx_pt,
+                            "start_y": sy_pt,
+                            "end_x": tx + (-24.0 if flip_x else 24.0),
+                            "end_y": ty - 54.0,
+                            "arc_height": phase.arc_height,
+                            "scale": phase.scale,
+                            "flip_x": flip_x,
+                        }
+                    )
+            elif phase.placement == "target_each":
+                for tx, ty in target_anchors:
+                    self.active_vfx_instances.append(
+                        {
+                            "effect_id": vfx_cfg.effect_id,
+                            "prefix": phase.prefix,
+                            "frame_count": frame_count,
+                            "elapsed": 0.0,
+                            "start_time": phase.start_time,
+                            "duration": max(0.01, phase.duration),
+                            "start_x": tx + dx,
+                            "start_y": ty + dy,
+                            "end_x": tx + dx,
+                            "end_y": ty + dy,
+                            "arc_height": 0.0,
+                            "scale": phase.scale,
+                            "flip_x": flip_x,
+                        }
+                    )
+            elif phase.placement == "target_group_center":
+                avg_x = sum(pt[0] for pt in target_anchors) / len(target_anchors)
+                avg_y = sum(pt[1] for pt in target_anchors) / len(target_anchors)
+                self.active_vfx_instances.append(
+                    {
+                        "effect_id": vfx_cfg.effect_id,
+                        "prefix": phase.prefix,
+                        "frame_count": frame_count,
+                        "elapsed": 0.0,
+                        "start_time": phase.start_time,
+                        "duration": max(0.01, phase.duration),
+                        "start_x": avg_x + dx,
+                        "start_y": avg_y + dy,
+                        "end_x": avg_x + dx,
+                        "end_y": avg_y + dy,
+                        "arc_height": 0.0,
+                        "scale": phase.scale,
+                        "flip_x": flip_x,
+                    }
+                )
+
+    def _draw_active_vfx(self, surface: pygame.Surface) -> None:
+        if not self.active_vfx_instances:
             return
         screen_w, screen_h = surface.get_size()
         sx = screen_w / 1280.0
         sy = screen_h / 720.0
-        pixel_scale = 2.0 * min(sx, sy)
+        base_pixel_scale = 2.0 * min(sx, sy)
 
-        for projectile in self.rachel_projectiles:
-            elapsed = float(projectile["elapsed"])
-            launch_delay = max(0.01, float(projectile["launch_delay"]))
-            flight_elapsed = elapsed - launch_delay
-            if flight_elapsed < 0.0:
-                # Phase 1: 8-frame charge formation in front of Rachel
-                charge_progress = min(1.0, max(0.0, elapsed / launch_delay))
-                x = float(projectile["start_x"])
-                y = float(projectile["start_y"])
-                frame_index = min(7, int(charge_progress * 8.0))
-                frame = self.sprite_manager.get_projectile_frame(
-                    "violet_ember", frame_index, prefix="charge"
-                )
-            else:
-                # Phase 2: 8-frame projectile flight toward the target
-                duration = max(0.01, float(projectile["duration"]))
-                progress = min(1.0, max(0.0, flight_elapsed / duration))
-                x = float(projectile["start_x"]) + (
-                    float(projectile["end_x"]) - float(projectile["start_x"])
-                ) * progress
-                y = float(projectile["start_y"]) + (
-                    float(projectile["end_y"]) - float(projectile["start_y"])
-                ) * progress - math.sin(progress * math.pi) * 26.0
+        for inst in self.active_vfx_instances:
+            local_elapsed = float(inst["elapsed"]) - float(inst["start_time"])
+            if local_elapsed < 0.0:
+                continue
+            duration = max(0.01, float(inst["duration"]))
+            progress = min(1.0, max(0.0, local_elapsed / duration))
+            x = float(inst["start_x"]) + (
+                float(inst["end_x"]) - float(inst["start_x"])
+            ) * progress
+            y = float(inst["start_y"]) + (
+                float(inst["end_y"]) - float(inst["start_y"])
+            ) * progress - math.sin(progress * math.pi) * float(inst["arc_height"])
 
-                frame_index = min(7, int(progress * 8.0))
-                frame = self.sprite_manager.get_projectile_frame(
-                    "violet_ember", frame_index, prefix="projectile"
-                )
-
+            frame_count = max(1, int(inst["frame_count"]))
+            frame_index = min(frame_count - 1, int(progress * frame_count))
+            frame = self.sprite_manager.get_projectile_frame(
+                str(inst["effect_id"]), frame_index, prefix=str(inst["prefix"])
+            )
             if frame is None:
                 continue
 
+            if inst["flip_x"]:
+                frame = pygame.transform.flip(frame, True, False)
+
             fw, fh = frame.get_size()
-            dw = max(8, int(round(fw * pixel_scale)))
-            dh = max(8, int(round(fh * pixel_scale)))
+            scale = base_pixel_scale * float(inst["scale"])
+            dw = max(8, int(round(fw * scale)))
+            dh = max(8, int(round(fh * scale)))
             scaled = frame if (dw, dh) == (fw, fh) else pygame.transform.scale(frame, (dw, dh))
             dest = (int(x * sx - dw / 2), int(y * sy - dh / 2))
             surface.blit(scaled, dest)
