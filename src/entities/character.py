@@ -97,6 +97,12 @@ class Character:
         self.current_mp = min(effective_max, self.current_mp + max(0, amount))
         return self.current_mp - old_mp
 
+    def clear_negative_statuses(self) -> None:
+        """Remove all negative status conditions from this character."""
+        from src.entities.actor import NEGATIVE_STATUSES
+
+        self.statuses = [s for s in self.statuses if s.status not in NEGATIVE_STATUSES]
+
     def take_damage(self, amount: int) -> int:
         """Apply damage clamped to 0. Returns damage taken."""
         actual = max(0, min(self.current_hp, amount))

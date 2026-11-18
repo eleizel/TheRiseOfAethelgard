@@ -85,6 +85,8 @@ class DialogueView:
         self._choices_panel: UIPanel | None = None
         self._choice_buttons: list[UIButton] = []
         self._choices_shown = False
+        self._rest_fade_timer = 0.0
+        self._rest_fade_duration = 1.5
 
     def start_dialogue(self, tree_id: str) -> None:
         """Begin a dialogue sequence from tree_id."""
@@ -306,7 +308,10 @@ class DialogueView:
             return
 
         if self.current_node.action_trigger:
+            prev_node_id = self.current_node.id
             self._execute_action_trigger(self.current_node.action_trigger)
+            if self.current_node is None or self.current_node.id != prev_node_id:
+                return
 
         next_id = self.current_node.next_node_id
         if next_id:

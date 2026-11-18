@@ -453,15 +453,72 @@ DIALOGUE_REGISTRY: Final[dict[str, DialogueTree]] = {
     "oakhaven_inn_open": DialogueTree(
         id="oakhaven_inn_open",
         nodes={
-            "inn_greet_1": DialogueNode(
-                id="inn_greet_1",
-                speaker_name="Innkeeper",
+            "inn_welcome": DialogueNode(
+                id="inn_welcome",
+                speaker_name="Bram",
                 speaker_id="elder",
-                text="Pull up a stool by the hearth! Once the Briarwood trouble settles, we'll have hot meals and beds ready for travelers.",
+                text="Welcome to the Oakhaven Hearth, Captain. A warm hearth and clean straw await, though the woods outside grow darker by the hour.",
+                next_node_id="inn_choices",
+            ),
+            "inn_choices": DialogueNode(
+                id="inn_choices",
+                speaker_name="Bram",
+                speaker_id="elder",
+                text="What does your company need tonight?",
+                choices=[
+                    DialogueChoice(
+                        text="Rest for the night (50 Gold)",
+                        target_node_id="inn_rest_attempt",
+                    ),
+                    DialogueChoice(
+                        text="Manage Party Roster",
+                        target_node_id="inn_party_mgmt",
+                    ),
+                    DialogueChoice(
+                        text="Leave",
+                        target_node_id="inn_farewell",
+                    ),
+                ],
+            ),
+            "inn_rest_attempt": DialogueNode(
+                id="inn_rest_attempt",
+                speaker_name="Bram",
+                speaker_id="elder",
+                text="Let me prepare the hearth and beds for your company...",
+                action_trigger="open_inn_rest",
+                next_node_id=None,
+            ),
+            "inn_rest_success": DialogueNode(
+                id="inn_rest_success",
+                speaker_name="Bram",
+                speaker_id="elder",
+                text="You rested soundly by the hearth. Your party's HP, MP, and vigor are fully restored.",
+                next_node_id="inn_choices",
+            ),
+            "inn_rest_failure": DialogueNode(
+                id="inn_rest_failure",
+                speaker_name="Bram",
+                speaker_id="elder",
+                text="I'd love to offer you the feather beds for free, Captain, but supplies are stretched thin. Come back when you've secured fifty gold.",
+                next_node_id="inn_choices",
+            ),
+            "inn_party_mgmt": DialogueNode(
+                id="inn_party_mgmt",
+                speaker_name="Bram",
+                speaker_id="elder",
+                text="Some of our companions are resting by the fire, waiting to swap places when the road gets too heavy.",
+                action_trigger="open_party_management",
+                next_node_id=None,
+            ),
+            "inn_farewell": DialogueNode(
+                id="inn_farewell",
+                speaker_name="Bram",
+                speaker_id="elder",
+                text="Safe travels through the village, Captain. Keep your blade oiled.",
                 next_node_id=None,
             ),
         },
-        start_node_id="inn_greet_1",
+        start_node_id="inn_welcome",
     ),
     "enter_townhall_oakhaven": DialogueTree(
         id="enter_townhall_oakhaven",

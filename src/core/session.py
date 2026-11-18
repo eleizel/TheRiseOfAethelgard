@@ -57,6 +57,17 @@ class GameSession:
             return True
         return False
 
+    def rest_at_inn(self, cost: int = 50) -> bool:
+        """Attempt to rest at an inn, deducting cost and fully restoring party HP/MP and cleansing status."""
+        if self.party.gold < cost:
+            return False
+        self.party.gold -= cost
+        for member in self.party.active_members + self.party.reserve_members:
+            member.current_hp = member.base_stats.max_hp
+            member.current_mp = member.base_stats.max_mp
+            member.clear_negative_statuses()
+        return True
+
     def initialize_new_game(self) -> None:
         """Create new game state starting in Oakhaven with 4 core companions."""
         self.party = Party(gold=250)

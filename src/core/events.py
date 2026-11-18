@@ -31,6 +31,7 @@ class AudioCue(Enum):
     FOOTSTEP = auto()
     LEVEL_UP = auto()
     DIALOGUE_ADVANCE = auto()
+    INN_REST = auto()
 
 
 @dataclass(frozen=True)
