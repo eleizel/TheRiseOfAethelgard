@@ -290,11 +290,46 @@ class HD2DRenderer:
         pygame.draw.line(surf, (200, 205, 215), (sword_x, py + 8 + bob), (sword_x, py + 22 + bob), 2)
         pygame.draw.rect(surf, (215, 175, 55), (sword_x - 2, py + 12 + bob, 5, 2))
 
+    def _get_prop_sprite(self, sprite_rel: str, width: int, height: int) -> pygame.Surface | None:
+        cache_key = f"{sprite_rel}:{width}x{height}"
+        if cache_key in self._prop_cache:
+            return self._prop_cache[cache_key]
+        project_root = Path(__file__).resolve().parent.parent.parent.parent
+        full_path = project_root / sprite_rel
+        if not full_path.exists():
+            return None
+        try:
+            loaded = pygame.image.load(str(full_path))
+            if pygame.display.get_surface() is not None:
+                try:
+                    loaded = loaded.convert_alpha()
+                except pygame.error:
+                    pass
+            if width > 0 and height > 0 and loaded.get_size() != (width, height):
+                loaded = pygame.transform.smoothscale(loaded, (width, height))
+            self._prop_cache[cache_key] = loaded
+            return loaded
+        except pygame.error:
+            return None
+
     def draw_prop(self, surf: pygame.Surface, prop: MapProp, screen_x: int, screen_y: int, time_sec: float) -> None:
         """Render environment prop based on prop_type."""
         if prop.prop_type in ("light_marker", "invisible", "none", "collision_only"):
             # Functional or lighting marker only; visual is baked into composite background
             return
+
+        if prop.sprite:
+            pw = max(1, int(prop.width))
+            ph = max(1, int(prop.height))
+            sprite_surf = self._get_prop_sprite(prop.sprite, pw, ph)
+            if sprite_surf is not None:
+                shadow_w = max(16, int(pw * 0.55))
+                shadow_h = max(6, int(ph * 0.14))
+                shadow_surf = pygame.Surface((shadow_w, shadow_h), pygame.SRCALPHA)
+                pygame.draw.ellipse(shadow_surf, (10, 10, 18, 95), (0, 0, shadow_w, shadow_h))
+                surf.blit(shadow_surf, (screen_x + (pw - shadow_w) // 2, screen_y + ph - shadow_h // 2 - 4))
+                surf.blit(sprite_surf, (screen_x, screen_y))
+                return
 
         if prop.prop_type == "tree":
             # Oak Trunk

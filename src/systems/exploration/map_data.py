@@ -41,6 +41,7 @@ class MapProp:
     height: float
     solid_rect: tuple[float, float, float, float] | None = None  # (rel_x, rel_y, w, h)
     light: LightSource | None = None
+    sprite: str | None = None
 
     @property
     def sort_y(self) -> float:
@@ -515,6 +516,7 @@ def load_zone_map_from_json(file_path: Path | str) -> Tilemap:
                 height=float(p.get("height", p.get("h", 32))),
                 solid_rect=solid_rect,
                 light=light_obj,
+                sprite=p.get("sprite"),
             )
         )
 

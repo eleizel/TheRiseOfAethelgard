@@ -88,35 +88,64 @@ class DialogueView:
         self._rest_fade_timer = 0.0
         self._rest_fade_duration = 1.5
 
+    def _show_single_node_message(self, tree_id: str, text: str) -> None:
+        self.current_tree = DialogueTree(
+            id=tree_id,
+            nodes={
+                "msg_1": DialogueNode(
+                    id="msg_1",
+                    speaker_name="Rowan",
+                    speaker_id="rowan",
+                    text=text,
+                    next_node_id=None,
+                )
+            },
+            start_node_id="msg_1",
+        )
+        self.current_node = self.current_tree.get_node("msg_1")
+        self.choice_index = 0
+        self.displayed_chars = 0
+        self.time_sec = 0.0
+        self._choices_shown = False
+        self._rebuild_node_ui()
+
+    def _resolve_dialogue_tree_id(self, tree_id: str) -> str:
+        qm = self.session.quest_manager
+        if tree_id == "elder_tomas":
+            if qm.is_step_active("shadow_in_briarwood", "report_to_tomas"):
+                return "elder_tomas_complete"
+            if qm.is_quest_completed("shadow_in_briarwood"):
+                if qm.is_quest_completed("whispers_in_the_roots"):
+                    return "elder_tomas_whispers_done"
+                if qm.is_quest_active("whispers_in_the_roots") and not qm.is_step_active(
+                    "whispers_in_the_roots", "talk_elder_tomas"
+                ):
+                    return "elder_tomas_whispers_active"
+                return "elder_tomas_whispers"
+        return tree_id
+
     def start_dialogue(self, tree_id: str) -> None:
         """Begin a dialogue sequence from tree_id."""
-        if tree_id == "elder_tomas" and self.session.quest_manager.is_step_active(
-            "shadow_in_briarwood", "report_to_tomas"
-        ):
-            tree_id = "elder_tomas_complete"
+        tree_id = self._resolve_dialogue_tree_id(tree_id)
+        if tree_id == "seal_blight_font_dialogue":
+            qm = self.session.quest_manager
+            if qm.is_quest_completed("whispers_in_the_roots"):
+                self._show_single_node_message(
+                    "seal_blight_font_done",
+                    "The Blight Font lies silent, sealed in radiant amber.",
+                )
+                return
+            if not qm.is_step_completed("whispers_in_the_roots", "defeat_root_guardian"):
+                self._show_single_node_message(
+                    "seal_blight_font_locked",
+                    "A barrier of living roots shields the Blight Font. The Root Goliath must be defeated first!",
+                )
+                return
         defeated_info = self._DEFEATED_ENCOUNTER_DIALOGUES.get(tree_id)
         if defeated_info is not None:
             quest_id, step_id, defeated_text = defeated_info
             if self.session.quest_manager.is_step_completed(quest_id, step_id):
-                self.current_tree = DialogueTree(
-                    id=f"{tree_id}_defeated",
-                    nodes={
-                        "defeated_1": DialogueNode(
-                            id="defeated_1",
-                            speaker_name="Rowan",
-                            speaker_id="rowan",
-                            text=defeated_text,
-                            next_node_id=None,
-                        )
-                    },
-                    start_node_id="defeated_1",
-                )
-                self.current_node = self.current_tree.get_node("defeated_1")
-                self.choice_index = 0
-                self.displayed_chars = 0
-                self.time_sec = 0.0
-                self._choices_shown = False
-                self._rebuild_node_ui()
+                self._show_single_node_message(f"{tree_id}_defeated", defeated_text)
                 return
         try:
             self.current_tree = get_dialogue_tree(tree_id)
@@ -370,7 +399,10 @@ class DialogueView:
         elif trigger == "OPEN_PARTY_COMPOSITION":
             self.session.transition_to(GameMode.PARTY)
         elif trigger == "START_QUEST_WHISPERS_IN_THE_ROOTS":
-            self.session.quest_manager.start_quest("whispers_in_the_roots")
+            qm = self.session.quest_manager
+            qm.start_quest("whispers_in_the_roots")
+            if qm.is_step_active("whispers_in_the_roots", "talk_elder_tomas"):
+                qm.on_dialogue_choice("elder_tomas_whispers", "elder_whispers_choices", 0)
         elif trigger == "START_ROOT_GOLIATH_COMBAT":
             goliath = create_enemy("root_goliath", "root_goliath")
             self.session.combat = RoundCombat(
@@ -381,8 +413,9 @@ class DialogueView:
             )
             self.session.transition_to(GameMode.COMBAT)
         elif trigger == "SEAL_ROOT_FONT":
-            self.session.party.quest_flags["root_font_sealed"] = True
-            self.session.quest_manager.on_flag_set("root_font_sealed")
+            if self.session.quest_manager.is_step_completed("whispers_in_the_roots", "defeat_root_guardian"):
+                self.session.party.quest_flags["root_font_sealed"] = True
+                self.session.quest_manager.on_flag_set("root_font_sealed")
         elif trigger.startswith("ENTER_MAP:"):
             parts = trigger.split(":")
             if len(parts) == 4:

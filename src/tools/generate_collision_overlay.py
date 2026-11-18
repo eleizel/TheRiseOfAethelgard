@@ -190,3 +190,8 @@ if __name__ == "__main__":
     inn_json = project_root / "assets/maps/inn_interior_oakhaven/map.json"
     inn_out = project_root / "assets/maps/inn_interior_oakhaven/collision_overlay.png"
     render_map_debug_overlay(inn_json, inn_out)
+
+    # 7. Rooted Hollows
+    rooted_json = project_root / "assets/maps/rooted_hollows/map.json"
+    rooted_out = project_root / "assets/maps/rooted_hollows/collision_overlay.png"
+    render_map_debug_overlay(rooted_json, rooted_out)

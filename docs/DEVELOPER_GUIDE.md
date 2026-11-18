@@ -15,6 +15,9 @@ The codebase follows a strict **domain-first** architecture enforced by [tests/t
   - `src/data/` — Declarative registries (`abilities.py`, `characters.py`, `classes.py`, `dialogues.py`, `enemies.py`, `items.py`, `quests.py`, `skill_trees.py`)
 - **Frontend Layer:**
   - `src/frontends/pygame_ce/` — Views (`views/`), `GameUIManager` (`ui_manager.py`), `EnemySpriteManager` (`combat_animator.py`), `HD2DRenderer` (`hd2d_renderer.py`), `DynamicMusicEngine` (`music_engine.py`).
+- **Developer Tools & CI:**
+  - `src/tools/` — Visual map editor ([map_editor.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/tools/map_editor.py), [map_editor_utils.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/tools/map_editor_utils.py)), debug overlay exporter ([generate_collision_overlay.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/tools/generate_collision_overlay.py)), sprite sheet extractor ([animation_extractor.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/tools/animation_extractor.py)).
+  - [ci.yml](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/.github/workflows/ci.yml) — Runs `ruff check src tests`, headless `pytest -q`, and Windows PyInstaller packaging (`TheRiseOfAethelgard.exe`).
 
 Always run both checks after any change:
 ```powershell
@@ -34,10 +37,10 @@ python -m ruff check src tests
    - Define `<CHAR>_TREE_NODES: dict[str, SkillNode]` and register it in `CHARACTER_TREES["<char_id>"]`.
 4. **Add Visual Assets:**
    - **Portrait:** `assets/portraits/<char_id>.png`
-   - **Overworld/Combat Sprite:** `assets/sprites/characters/<char_id>.png`
-   - Verify any filename aliases in [src/frontends/pygame_ce/combat_animator.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/combat_animator.py) if the filename differs from `<char_id>.png`.
+   - **Combat Sprite:** `assets/sprites/<char_id>.png` (resolved directly by `EnemySpriteManager` in [src/frontends/pygame_ce/combat_animator.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/combat_animator.py); add class aliases if reusing a sprite).
+   - **Optional Animations / Overworld Walk Sheets:** Place multi-frame walk sheets or attack/effect frames in `assets/sprites/characters/<char_id>/` and `assets/sprites/effects/` (see `HD2DRenderer._init_character_animations()` and `combat_animator.py`).
 5. **Add to Starting Party or Recruitment:**
-   - **Starting party:** Add `"<char_id>"` to the list in `GameSession.initialize_new_game()` ([src/core/session.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/core/session.py)). Characters 1–4 go to `active_members`; character 5+ go to `reserve_members` (accessible in `PartyView` at Inns / Rowan's cottage).
+   - **Starting party:** Add `"<char_id>"` to the list in `GameSession.initialize_new_game()` ([src/core/session.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/core/session.py), currently `rowan`, `lyra`, `caelen`, `melissa`, `jack`, `rachel`). Characters 1–4 go to `active_members`; character 5+ go to `reserve_members` (accessible in `PartyView` at Inns / Rowan's cottage).
    - **Mid-game recruitment:** Call `session.party.add_character(create_character("<char_id>"))` and `session.skill_trees["<char_id>"] = create_character_skill_tree("<char_id>")` from a dialogue `action_trigger` or quest reward.
 
 ---
@@ -52,7 +55,7 @@ python -m ruff check src tests
        description="Launches fiery arrows at all enemies with a chance to Burn.",
        mp_cost=14,
        scope=TargetScope.ALL_ENEMIES,   # SINGLE_ENEMY, ALL_ENEMIES, SINGLE_ALLY, ALL_ALLIES, SELF
-       element=AbilityElement.FIRE,     # PHYSICAL, FIRE, FROST, EARTH, ARCANE, HOLY, HEAL
+       element=AbilityElement.FIRE,     # PHYSICAL, FIRE, FROST, EARTH, HOLY, DARK, HEAL
        power=24,
        status_inflict="BURN",           # Optional StatusType name or alias
        status_chance=0.50,              # 0.0 to 1.0
@@ -67,16 +70,19 @@ python -m ruff check src tests
 ## 4. Adding New Maps
 
 1. **Create Map Folder & `map.json`:**
-   - Place `assets/maps/<map_id>/map.json` (plus background/overlay images). You can author collision boxes, light markers, dialogue triggers, and map transitions with the built-in editor:
+   - Place `assets/maps/<map_id>/map.json` (plus background/overlay images). Author collision boxes, light markers, dialogue triggers, map transitions, and NPC/sprite props with the built-in editor (validates unique IDs before saving):
      ```powershell
      python -m src.tools.map_editor
      ```
+   - Regenerate debug overlays (`collision_overlay.png`) with `python src/tools/generate_collision_overlay.py`.
 2. **Register Map Loading / Fallback** in [src/systems/exploration/map_data.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/systems/exploration/map_data.py):
    - `load_map(map_id)` automatically loads `assets/maps/<map_id>/map.json` if present (and falls back to `MAP_REGISTRY` if defined).
 3. **Wire Transitions:**
-   - Add a `transition` trigger in the source map's `map.json` pointing to `target_map_id="<map_id>"`, `target_x`, `target_y`, and a return transition back.
-4. **Configure Encounters, Backgrounds & Music:**
-   - **Enemy Encounter Pool:** Add a branch for `map_id` in `generate_encounter_for_map()` ([src/data/enemies.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/data/enemies.py)) and step thresholds in [src/systems/exploration/encounter_system.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/systems/exploration/encounter_system.py).
+   - **Automatic doorway/edge transition:** Add a `transition` trigger in `map.json` pointing to `target_map_id="<map_id>"`, `target_x`, `target_y`, and a return transition back.
+   - **Dialogue-prompted transition (e.g. village building doors):** Add a `dialogue` trigger in `map.json`, then give the confirming `DialogueNode` `action_trigger="ENTER_MAP:<map_id>:<spawn_x>:<spawn_y>"` (handled by `DialogueView._execute_action_trigger()` and `ExplorationView.on_enter()`).
+4. **Configure Safe Zones, Encounters, Backgrounds & Music:**
+   - **Safe Zones:** Add town/interior map IDs to `EncounterSystem.SAFE_ZONES` ([src/systems/exploration/encounter_system.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/systems/exploration/encounter_system.py)) to disable random encounters.
+   - **Enemy Encounter Pool:** Add a branch for `map_id` in `generate_encounter_for_map()` ([src/data/enemies.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/data/enemies.py)).
    - **Combat Backdrop:** Map `map_id` to a background asset in [src/frontends/pygame_ce/combat_background.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/combat_background.py).
    - **Music Context:** Add/map `MusicContext` in [src/frontends/pygame_ce/music_engine.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/music_engine.py).
 
@@ -132,6 +138,11 @@ Quests are purely declarative in [src/data/quests.py](file:///c:/Users/Sergio/Py
 | `FLAG_SET` | `on_flag_set(target_id)` is triggered | `target_id` |
 
 To start a quest from proximity, set `unlock_proximity=(map_id, trigger_id, radius_px)` (and optional `unlock_dialogue_id`) on `QuestDefinition`. To start a quest from a dialogue node, call `self.session.quest_manager.start_quest("wolf_cull")` inside `DialogueView._execute_action_trigger()` ([dialogue_view.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/views/dialogue_view.py)).
+
+### Scripted Quest Combats (One-Time Boss/Encounter Guards)
+To prevent re-triggering a scripted quest combat after its `KILL_ENEMY` step completes:
+- Register the action trigger in `DialogueView._SCRIPTED_COMBAT_GUARDS` (`action_trigger -> (quest_id, step_id)`) and optional post-defeat flavor text in `DialogueView._DEFEATED_ENCOUNTER_DIALOGUES`.
+- `QuestManager.is_step_completed(quest_id, step_id)` automatically blocks re-launching the combat once the step or quest is finished.
 
 ---
 
@@ -223,5 +234,8 @@ To inflict a status back onto an attacker when hit (e.g., *Bramble Mail* inflict
 ## 9. Dialogues & NPCs
 
 - **Dialogue Trees:** Defined in `DIALOGUE_REGISTRY` inside [src/data/dialogues.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/data/dialogues.py).
-- **Triggers:** Add `action_trigger="<KEY>"` on a `DialogueNode` and handle `<KEY>` in `DialogueView._execute_action_trigger()` ([dialogue_view.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/views/dialogue_view.py)) to set `quest_flags`, start combats, open `GameMode.PARTY`, or start quests.
-- **NPC Placement:** Add NPC sprites/dialogue trigger zones in `assets/maps/<map_id>/map.json` (or `map_data.py`).
+- **Action Triggers:** Add `action_trigger="<KEY>"` on a `DialogueNode` and handle `<KEY>` in `DialogueView._execute_action_trigger()` ([dialogue_view.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/views/dialogue_view.py)) to set `quest_flags`, start combats, open `GameMode.PARTY`, start quests, or transition maps via `ENTER_MAP:<map_id>:<spawn_x>:<spawn_y>`.
+- **NPC & Sprite Props:**
+  - Place NPC sprites in `assets/sprites/npcs/*.png`.
+  - In [map_editor.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/tools/map_editor.py), switch to **`[5] NPC / Sprite Prop`** (key `5`), cycle sprites with `<` / `>` (or `[` / `]`) using the live thumbnail preview, and click/drag on the map to stamp a `props` entry (`prop_type: "npc"`, `sprite`, and optional `solid_rect`).
+  - `load_zone_map_from_json()` ([map_data.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/systems/exploration/map_data.py)) loads `MapProp.sprite`, and `HD2DRenderer.draw_prop()` ([hd2d_renderer.py](file:///c:/Users/Sergio/PycharmProjects/TheRiseOfAethelgard/src/frontends/pygame_ce/hd2d_renderer.py)) renders it Y-sorted with a ground shadow. Pair with a `dialogue` trigger zone in `map.json` for interaction.

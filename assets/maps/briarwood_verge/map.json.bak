@@ -371,7 +371,7 @@
       "h": 13
     },
     {
-      "id": "col_51",
+      "id": "col_64",
       "x": 370,
       "y": 514,
       "w": 73,
@@ -600,7 +600,18 @@
       "y": 601,
       "width": 61,
       "height": 59,
-      "dialogue_id": "special_1"
+      "dialogue_id": "special_encounter"
+    },
+    {
+      "id": "root_cave_entrance",
+      "trigger_type": "transition",
+      "x": 181,
+      "y": 953,
+      "width": 64,
+      "height": 48,
+      "target_map_id": "rooted_hollows",
+      "target_x": 320,
+      "target_y": 64
     }
   ]
 }

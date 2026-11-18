@@ -98,7 +98,7 @@
       "h": 165
     },
     {
-      "id": "col_12",
+      "id": "col_53",
       "x": 638,
       "y": 574,
       "w": 96,
@@ -533,8 +533,8 @@
       "width": 22,
       "height": 59,
       "target_map_id": "oakhaven_village_main",
-      "target_x": 320,
-      "target_y": 64
+      "target_x": 1220,
+      "target_y": 360
     }
   ]
 }

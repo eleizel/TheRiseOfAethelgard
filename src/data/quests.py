@@ -114,8 +114,10 @@ QUEST_REGISTRY: Final[dict[str, QuestDefinition]] = {
             QuestStep(
                 id="talk_elder_tomas",
                 description="Speak with Elder Tomas in Oakhaven about the seismic tremors.",
-                objective_type=ObjectiveType.TALK_TO_NPC,
+                objective_type=ObjectiveType.DIALOGUE_CHOICE,
                 target_id="elder_tomas_whispers",
+                node_id="elder_whispers_choices",
+                choice_index=0,
             ),
             QuestStep(
                 id="reach_rooted_hollows",
@@ -143,7 +145,7 @@ QUEST_REGISTRY: Final[dict[str, QuestDefinition]] = {
             items={"elixir_of_dawn": 2, "sunfire_blade": 1},
             flags=("whispers_in_the_roots_completed",),
         ),
-        unlock_proximity=("briarwood_verge", "root_cave_entrance", 48.0),
+        unlock_proximity=("briarwood_verge", "root_cave_entrance", 96.0),
         unlock_dialogue_id="elder_tomas_whispers_start",
     ),
 }

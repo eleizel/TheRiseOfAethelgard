@@ -493,6 +493,21 @@
         "intensity": 1.0,
         "flicker": true
       }
+    },
+    {
+      "id": "npc_1",
+      "prop_type": "npc",
+      "x": 722,
+      "y": 243,
+      "width": 64,
+      "height": 80,
+      "solid_rect": [
+        16,
+        58,
+        32,
+        20
+      ],
+      "sprite": "assets/sprites/npcs/ciudadano_04_mujer_azul.png"
     }
   ],
   "triggers": [
@@ -519,10 +534,10 @@
     {
       "id": "dlg_trigger_3",
       "trigger_type": "dialogue",
-      "x": 728,
-      "y": 258,
-      "width": 50,
-      "height": 64,
+      "x": 705,
+      "y": 264,
+      "width": 87,
+      "height": 77,
       "dialogue_id": "elder_tomas"
     },
     {

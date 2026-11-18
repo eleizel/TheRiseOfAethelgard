@@ -39,7 +39,7 @@
       "x": 198,
       "y": 114,
       "w": 254,
-      "h": 38
+      "h": 64
     },
     {
       "id": "right_shelves_and_sacks",
@@ -122,7 +122,11 @@
       "height": 16,
       "light": {
         "radius": 100,
-        "color": [255, 200, 110],
+        "color": [
+          255,
+          200,
+          110
+        ],
         "intensity": 0.9,
         "flicker": true
       }
@@ -136,7 +140,11 @@
       "height": 16,
       "light": {
         "radius": 110,
-        "color": [255, 200, 110],
+        "color": [
+          255,
+          200,
+          110
+        ],
         "intensity": 1.0,
         "flicker": true
       }
@@ -150,7 +158,11 @@
       "height": 16,
       "light": {
         "radius": 110,
-        "color": [255, 200, 110],
+        "color": [
+          255,
+          200,
+          110
+        ],
         "intensity": 1.0,
         "flicker": true
       }
@@ -164,7 +176,11 @@
       "height": 16,
       "light": {
         "radius": 100,
-        "color": [255, 200, 110],
+        "color": [
+          255,
+          200,
+          110
+        ],
         "intensity": 0.9,
         "flicker": true
       }
@@ -185,8 +201,8 @@
     {
       "id": "trigger_oakhaven_shop_open",
       "trigger_type": "dialogue",
-      "x": 296,
-      "y": 150,
+      "x": 292,
+      "y": 180,
       "width": 64,
       "height": 18,
       "dialogue_id": "oakhaven_shop_open"

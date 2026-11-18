@@ -60,11 +60,14 @@ COLOR_TRANSITION_FILL = (45, 120, 245, 95)
 COLOR_TRANSITION_LINE = (80, 160, 255, 240)
 COLOR_LIGHT_FILL = (255, 230, 70, 130)
 COLOR_LIGHT_LINE = (255, 240, 100, 240)
+COLOR_PROP_FILL = (180, 95, 245, 95)
+COLOR_PROP_LINE = (210, 120, 255, 240)
 
 MODE_COLLISION = "collision"
 MODE_DIALOGUE = "dialogue"
 MODE_TRANSITION = "transition"
 MODE_LIGHT = "light"
+MODE_PROP = "prop"
 
 
 class VisualMapEditor:
@@ -72,6 +75,9 @@ class VisualMapEditor:
         self.project_root = project_root
         self.maps_dir = project_root / "assets" / "maps"
         self.available_maps = self._discover_maps()
+        self.available_prop_sprites = self._discover_prop_sprites()
+        self.selected_prop_sprite_idx = 0
+        self._prop_sprite_cache: dict[str, pygame.Surface] = {}
 
         self.screen_w = 1280
         self.screen_h = 768
@@ -130,6 +136,36 @@ class VisualMapEditor:
             if d.is_dir() and (d / "map.json").exists():
                 maps.append(d.name)
         return sorted(maps)
+
+    def _discover_prop_sprites(self) -> list[str]:
+        npc_dir = self.project_root / "assets" / "sprites" / "npcs"
+        if not npc_dir.exists():
+            return []
+        return sorted(
+            str(p.relative_to(self.project_root)).replace("\\", "/")
+            for p in npc_dir.glob("*.png")
+        )
+
+    def _get_prop_sprite_surface(self, sprite_rel: str) -> pygame.Surface | None:
+        if sprite_rel in self._prop_sprite_cache:
+            return self._prop_sprite_cache[sprite_rel]
+        full = self.project_root / sprite_rel
+        if not full.exists():
+            return None
+        try:
+            surf = pygame.image.load(str(full)).convert_alpha()
+            self._prop_sprite_cache[sprite_rel] = surf
+            return surf
+        except pygame.error:
+            return None
+
+    def _cycle_prop_sprite(self, delta: int) -> None:
+        if not self.available_prop_sprites:
+            self.set_status("No NPC/prop sprites found in assets/sprites/npcs.")
+            return
+        self.selected_prop_sprite_idx = (self.selected_prop_sprite_idx + delta) % len(self.available_prop_sprites)
+        name = Path(self.available_prop_sprites[self.selected_prop_sprite_idx]).stem
+        self.set_status(f"Selected NPC Sprite: {name}")
 
     def load_map(self, map_id: str):
         self.map_id = map_id
@@ -355,6 +391,13 @@ class VisualMapEditor:
         elif event.key == pygame.K_4:
             self.current_mode = MODE_LIGHT
             self.set_status("Switched to [4] Point Light Prop mode.")
+        elif event.key == pygame.K_5:
+            self.current_mode = MODE_PROP
+            self.set_status("Switched to [5] NPC / Sprite Prop mode. Click or drag to place; [ / ] to cycle sprite.")
+        elif event.key == pygame.K_LEFTBRACKET:
+            self._cycle_prop_sprite(-1)
+        elif event.key == pygame.K_RIGHTBRACKET:
+            self._cycle_prop_sprite(1)
         elif event.key == pygame.K_g:
             self.snap_idx = (self.snap_idx + 1) % len(self.snap_options)
             self.set_status(f"Snap Grid: {self.snap_options[self.snap_idx]} px")
@@ -428,8 +471,10 @@ class VisualMapEditor:
             if self.is_drawing_rect and self.drag_start_world and self.current_drag_rect:
                 self.is_drawing_rect = False
                 rx, ry, rw, rh = self.current_drag_rect
-                # Require min 8x8 size
-                if rw >= 8 and rh >= 8:
+                # Require min 8x8 size (single click in MODE_PROP stamps 64x80 NPC size)
+                if self.current_mode == MODE_PROP and (rw < 8 or rh < 8):
+                    self._create_new_element(rx, ry, 64, 80)
+                elif rw >= 8 and rh >= 8:
                     self._create_new_element(rx, ry, rw, rh)
                 self.drag_start_world = None
                 self.current_drag_rect = None
@@ -530,6 +575,28 @@ class VisualMapEditor:
             self.selected_category = "props"
             self.set_status(f"Created Light Source '{item['id']}'")
 
+        elif self.current_mode == MODE_PROP:
+            sprite_rel = (
+                self.available_prop_sprites[self.selected_prop_sprite_idx]
+                if self.available_prop_sprites
+                else ""
+            )
+            item: dict[str, Any] = {
+                "id": next_unique_id(self.map_data, "npc"),
+                "prop_type": "npc",
+                "x": x,
+                "y": y,
+                "width": w,
+                "height": h,
+                "solid_rect": [16, max(0, h - 22), max(16, w - 32), 20],
+            }
+            if sprite_rel:
+                item["sprite"] = sprite_rel
+            self.map_data["props"].append(item)
+            self.selected_item = item
+            self.selected_category = "props"
+            self.set_status(f"Created NPC Prop '{item['id']}'")
+
     def _delete_selected(self):
         if not self.selected_item or not self.selected_category:
             return
@@ -567,6 +634,7 @@ class VisualMapEditor:
             (MODE_DIALOGUE, "[2] Dialogue", COLOR_DIALOGUE_LINE),
             (MODE_TRANSITION, "[3] Transition", COLOR_TRANSITION_LINE),
             (MODE_LIGHT, "[4] Light Prop", COLOR_LIGHT_LINE),
+            (MODE_PROP, "[5] NPC / Prop", COLOR_PROP_LINE),
         ]
         for mode_key, mode_name, col in modes:
             if 15 <= rel_x <= 300 and mode_y <= my <= mode_y + 26:
@@ -574,6 +642,16 @@ class VisualMapEditor:
                 self.set_status(f"Switched mode to {mode_name}")
                 return
             mode_y += 30
+
+        # Prop Sprite Picker (shown when MODE_PROP is active)
+        if self.current_mode == MODE_PROP:
+            if 15 <= rel_x <= 50 and mode_y + 12 <= my <= mode_y + 44:
+                self._cycle_prop_sprite(-1)
+                return
+            if 270 <= rel_x <= 305 and mode_y + 12 <= my <= mode_y + 44:
+                self._cycle_prop_sprite(1)
+                return
+            mode_y += 64
 
         # Snap toggles
         snap_y = mode_y + 20
@@ -621,6 +699,10 @@ class VisualMapEditor:
             light = item["light"]
             res.append(("light.radius", light.get("radius", 60)))
             res.append(("light.flicker", str(light.get("flicker", True))))
+        elif self.selected_category == "props":
+            res.append(("prop_type", item.get("prop_type", "npc")))
+            res.append(("sprite", item.get("sprite", "")))
+            res.append(("solid", str(bool(item.get("solid_rect")))))
         return res
 
     def _commit_text_field(self):
@@ -648,6 +730,13 @@ class VisualMapEditor:
                 self.selected_item["light"]["radius"] = int(v)
             elif f == "light.flicker":
                 self.selected_item["light"]["flicker"] = v.lower() in ("true", "1", "yes")
+            elif f == "solid":
+                if v.lower() in ("true", "1", "yes"):
+                    w = int(self.selected_item.get("width", 64))
+                    h = int(self.selected_item.get("height", 80))
+                    self.selected_item["solid_rect"] = [16, max(0, h - 22), max(16, w - 32), 20]
+                else:
+                    self.selected_item.pop("solid_rect", None)
             else:
                 self.selected_item[f] = v
             self.set_status(f"Updated {f} -> {v}")
@@ -716,10 +805,22 @@ class VisualMapEditor:
             line_c = COLOR_TRANSITION_LINE if ttype == "transition" else COLOR_DIALOGUE_LINE
             self._render_box(overlay_surf, trig, "triggers", fill_c, line_c)
 
-        # Props / Lights
+        # Props / Lights / NPCs
         for prop in self.map_data.get("props", []):
-            self._render_box(overlay_surf, prop, "props", COLOR_LIGHT_FILL, COLOR_LIGHT_LINE)
-            if "light" in prop:
+            is_light = "light" in prop
+            p_fill = COLOR_LIGHT_FILL if is_light else COLOR_PROP_FILL
+            p_line = COLOR_LIGHT_LINE if is_light else COLOR_PROP_LINE
+            sprite_rel = prop.get("sprite")
+            if sprite_rel:
+                spr = self._get_prop_sprite_surface(sprite_rel)
+                if spr is not None:
+                    sx, sy = self.world_to_screen(prop.get("x", 0), prop.get("y", 0))
+                    sw = max(1, int(prop.get("width", 64) * self.zoom))
+                    sh = max(1, int(prop.get("height", 80) * self.zoom))
+                    scaled = pygame.transform.smoothscale(spr, (sw, sh)) if spr.get_size() != (sw, sh) else spr
+                    overlay_surf.blit(scaled, (sx, sy))
+            self._render_box(overlay_surf, prop, "props", p_fill, p_line)
+            if is_light:
                 px = prop.get("x", 0) + prop.get("width", 16) / 2
                 py = prop.get("y", 0) + prop.get("height", 16) / 2
                 rad = prop["light"].get("radius", 60)
@@ -732,15 +833,14 @@ class VisualMapEditor:
             dx, dy, dw, dh = self.current_drag_rect
             sx, sy = self.world_to_screen(dx, dy)
             sw, sh = int(dw * self.zoom), int(dh * self.zoom)
-            draw_color = (
-                COLOR_COLLISION_LINE
-                if self.current_mode == MODE_COLLISION
-                else (
-                    COLOR_DIALOGUE_LINE
-                    if self.current_mode == MODE_DIALOGUE
-                    else (COLOR_TRANSITION_LINE if self.current_mode == MODE_TRANSITION else COLOR_LIGHT_LINE)
-                )
-            )
+            mode_colors = {
+                MODE_COLLISION: COLOR_COLLISION_LINE,
+                MODE_DIALOGUE: COLOR_DIALOGUE_LINE,
+                MODE_TRANSITION: COLOR_TRANSITION_LINE,
+                MODE_LIGHT: COLOR_LIGHT_LINE,
+                MODE_PROP: COLOR_PROP_LINE,
+            }
+            draw_color = mode_colors.get(self.current_mode, COLOR_LIGHT_LINE)
             pygame.draw.rect(overlay_surf, (*draw_color[:3], 90), (sx, sy, sw, sh))
             pygame.draw.rect(overlay_surf, draw_color, (sx, sy, sw, sh), 2)
 
@@ -844,6 +944,7 @@ class VisualMapEditor:
             (MODE_DIALOGUE, "[2] Dialogue Trigger", COLOR_DIALOGUE_LINE),
             (MODE_TRANSITION, "[3] Map Transition", COLOR_TRANSITION_LINE),
             (MODE_LIGHT, "[4] Point Light Prop", COLOR_LIGHT_LINE),
+            (MODE_PROP, "[5] NPC / Sprite Prop", COLOR_PROP_LINE),
         ]
         for mode_key, mode_name, col in modes:
             is_active = self.current_mode == mode_key
@@ -853,6 +954,46 @@ class VisualMapEditor:
             t = FONT_SMALL.render(mode_name, True, col if is_active else COLOR_TEXT)
             self.screen.blit(t, (r.x + 10, r.y + 5))
             btn_y += 30
+
+        if self.current_mode == MODE_PROP:
+            card_r = pygame.Rect(sx + 15, btn_y, 290, 56)
+            pygame.draw.rect(self.screen, (26, 28, 36), card_r, border_radius=4)
+            pygame.draw.rect(self.screen, (65, 55, 85), card_r, 1, border_radius=4)
+
+            prev_r = pygame.Rect(sx + 19, btn_y + 12, 32, 32)
+            next_r = pygame.Rect(sx + 269, btn_y + 12, 32, 32)
+            for r_btn, txt_btn in ((prev_r, "<"), (next_r, ">")):
+                pygame.draw.rect(self.screen, (45, 50, 65), r_btn, border_radius=3)
+                pygame.draw.rect(self.screen, COLOR_PROP_LINE, r_btn, 1, border_radius=3)
+                t_btn = FONT_SMALL.render(txt_btn, True, COLOR_TEXT)
+                self.screen.blit(t_btn, (r_btn.x + 12, r_btn.y + 8))
+
+            thumb_r = pygame.Rect(sx + 58, btn_y + 4, 42, 48)
+            pygame.draw.rect(self.screen, (18, 20, 26), thumb_r, border_radius=3)
+            pygame.draw.rect(self.screen, (75, 80, 95), thumb_r, 1, border_radius=3)
+
+            if self.available_prop_sprites:
+                spr_rel = self.available_prop_sprites[self.selected_prop_sprite_idx]
+                spr_name = Path(spr_rel).stem
+                spr_surf = self._get_prop_sprite_surface(spr_rel)
+                if spr_surf is not None:
+                    sw, sh = spr_surf.get_size()
+                    scale = min(38 / max(1, sw), 44 / max(1, sh))
+                    tw, th = max(1, int(sw * scale)), max(1, int(sh * scale))
+                    scaled = pygame.transform.smoothscale(spr_surf, (tw, th))
+                    self.screen.blit(scaled, (thumb_r.x + (42 - tw) // 2, thumb_r.y + (48 - th) // 2))
+                count_str = f"{self.selected_prop_sprite_idx + 1}/{len(self.available_prop_sprites)} ({spr_surf.get_width()}x{spr_surf.get_height()})" if spr_surf else ""
+            else:
+                spr_name = "(none)"
+                count_str = "0/0"
+
+            if len(spr_name) > 20:
+                spr_name = spr_name[:18] + ".."
+            t_name = FONT_SMALL.render(spr_name, True, COLOR_PROP_LINE)
+            t_cnt = FONT_SMALL.render(count_str, True, COLOR_TEXT_DIM)
+            self.screen.blit(t_name, (sx + 108, btn_y + 10))
+            self.screen.blit(t_cnt, (sx + 108, btn_y + 28))
+            btn_y += 64
 
         # Snap to grid selector
         btn_y += 8

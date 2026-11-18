@@ -805,6 +805,21 @@
         "intensity": 1.0,
         "flicker": true
       }
+    },
+    {
+      "id": "npc_1",
+      "prop_type": "npc",
+      "x": 827,
+      "y": 223,
+      "width": 64,
+      "height": 80,
+      "solid_rect": [
+        16,
+        58,
+        32,
+        20
+      ],
+      "sprite": "assets/sprites/npcs/npc_01_herrero.png"
     }
   ],
   "triggers": [
