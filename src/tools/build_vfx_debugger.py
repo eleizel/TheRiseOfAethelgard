@@ -412,12 +412,15 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: auto;
-      max-width: 100%;
+      width: 100%;
+      max-width: 1280px;
       background: #0a0c12;
       box-shadow: 0 12px 32px rgba(0,0,0,0.45);
     }
     canvas {
       display: block;
+      width: 100%;
+      height: auto;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
@@ -430,9 +433,34 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       padding: 10px 14px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .timeline input[type="range"] { flex: 1; }
+    .timeline input[type="range"] { flex: 1; min-width: 160px; }
+    @media (max-width: 960px) {
+      body {
+        flex-direction: column;
+      }
+      .main {
+        order: 1;
+        padding: 10px;
+        width: 100%;
+      }
+      .sidebar {
+        order: 2;
+        width: 100%;
+        max-height: none;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        padding: 12px;
+      }
+      .toolbar, .timeline {
+        padding: 8px 10px;
+      }
+      button, select, input[type="number"] {
+        min-height: 38px;
+      }
+    }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
     .phase-card {
       border-top: 1px solid var(--border);
