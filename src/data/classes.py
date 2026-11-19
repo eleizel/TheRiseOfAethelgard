@@ -44,7 +44,7 @@ CLASS_REGISTRY: Final[dict[str, ClassDefinition]] = {
             speed=1,
             crit_chance=0.002,
         ),
-        starting_abilities=["shield_slam", "radiant_slash", "rally_guard"],
+        starting_abilities=["shield_slam"],
     ),
     "botanist": ClassDefinition(
         id="botanist",
@@ -70,7 +70,7 @@ CLASS_REGISTRY: Final[dict[str, ClassDefinition]] = {
             speed=1,
             crit_chance=0.002,
         ),
-        starting_abilities=["herbal_salve", "briar_thorn", "soothing_bloom"],
+        starting_abilities=["herbal_salve"],
     ),
     "scout": ClassDefinition(
         id="scout",
@@ -96,7 +96,7 @@ CLASS_REGISTRY: Final[dict[str, ClassDefinition]] = {
             speed=2,
             crit_chance=0.005,
         ),
-        starting_abilities=["twin_daggers", "venom_blade", "smoke_screen"],
+        starting_abilities=["twin_daggers"],
     ),
     "weave_mage": ClassDefinition(
         id="weave_mage",
@@ -122,7 +122,7 @@ CLASS_REGISTRY: Final[dict[str, ClassDefinition]] = {
             speed=1,
             crit_chance=0.003,
         ),
-        starting_abilities=["flame_lance", "frost_shard", "arcane_ward"],
+        starting_abilities=["frost_shard"],
     ),
     # Wave 2 Planned Archetypes (Declaratively ready)
     "berserker": ClassDefinition(
@@ -253,7 +253,7 @@ CLASS_REGISTRY: Final[dict[str, ClassDefinition]] = {
             speed=2,
             crit_chance=0.005,
         ),
-        starting_abilities=["aimed_shot", "piercing_arrow", "hunters_mark"],
+        starting_abilities=["aimed_shot"],
     ),
     "witch": ClassDefinition(
         id="witch",
@@ -279,6 +279,6 @@ CLASS_REGISTRY: Final[dict[str, ClassDefinition]] = {
             speed=2,
             crit_chance=0.004,
         ),
-        starting_abilities=["violet_ember", "orchid_mist", "amethyst_ward"],
+        starting_abilities=["violet_ember"],
     ),
 }

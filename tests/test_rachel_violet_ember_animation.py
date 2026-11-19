@@ -353,3 +353,55 @@ def test_petal_hex_sheet_loads_and_renders_for_player_and_enemy():
         view._draw_active_vfx(surf)
     finally:
         pygame.quit()
+
+
+def test_orchid_mist_sheet_loads_and_renders_for_all_enemies():
+    import pygame
+
+    from src.core.session import GameSession
+    from src.data.enemies import create_enemy
+    from src.frontends.pygame_ce.views.combat_view import CombatView
+    from src.systems.combat.round_combat import ActionResult, RoundCombat
+
+    pygame.init()
+    try:
+        manager = EnemySpriteManager()
+        assert manager.get_effect_frame_count("orchid_mist", "mist") == 8
+        frame = manager.get_projectile_frame("orchid_mist", 4, prefix="mist")
+        assert frame is not None
+        assert frame.get_size() == (80, 80)
+
+        session = GameSession(seed=42)
+        session.initialize_new_game()
+        enemies = [
+            create_enemy("bramble_hound", "hound_1"),
+            create_enemy("spore_pod", "pod_1"),
+        ]
+        session.combat = RoundCombat(party=session.party, enemies=enemies, seed=42)
+        view = CombatView(session=session)
+        view.on_enter()
+
+        rachel = next(c for c in session.party.active_members if c.id == "rachel")
+        om_res = ActionResult(
+            source_name=rachel.name,
+            action_name="Orchid Mist",
+            target_names=[e.name for e in enemies],
+            damage_dealt=[18, 16],
+            healing_dealt=[],
+            is_crit=False,
+            status_applied="POISON",
+            message="Rachel cast Orchid Mist!",
+            ability_id="orchid_mist",
+            target_ids=[e.id for e in enemies],
+        )
+        view._trigger_attacker_animation(om_res)
+        # target_each on 2 enemies spawns 2 instances
+        assert len(view.active_vfx_instances) == 2
+        assert all(inst["prefix"] == "mist" for inst in view.active_vfx_instances)
+
+        view.update(0.50)
+        surf = pygame.Surface((1280, 720), pygame.SRCALPHA)
+        view._draw_active_vfx(surf)
+    finally:
+        pygame.quit()
+

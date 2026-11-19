@@ -32,6 +32,12 @@ def test_skill_tree_prerequisite_and_sp_validation():
     # Defense stat increased by 4
     assert char.base_stats.defense == 14 + 4
 
+    # Unlock both Tier 1 abilities required for Tier 2
+    char.skill_points = 2
+    assert tree.unlock_node(char, "rowan_t1_slash") is True
+    assert tree.unlock_node(char, "rowan_t1_guard") is True
+    assert char.skill_points == 0
+
     # Now with 0 SP, cannot unlock Aegis Bash
     can_t2, reason_sp = tree.can_unlock("rowan_skill_1", available_sp=char.skill_points)
     assert can_t2 is False

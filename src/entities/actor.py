@@ -19,6 +19,10 @@ class StatusType(Enum):
     ATTACK_UP = auto()
     DEFENSE_UP = auto()
     SPEED_UP = auto()
+    THORNS = auto()
+    SHIELD = auto()
+    CRIT_UP = auto()
+    MAGIC_DEFENSE_UP = auto()
 
 
 NEGATIVE_STATUSES: frozenset[StatusType] = frozenset(
@@ -38,6 +42,9 @@ _STATUS_ALIASES: dict[str, StatusType] = {
     "fortify": StatusType.DEFENSE_UP,
     "haste": StatusType.SPEED_UP,
     "regeneration": StatusType.REGEN,
+    "mdef_up": StatusType.MAGIC_DEFENSE_UP,
+    "magic_ward": StatusType.MAGIC_DEFENSE_UP,
+    "retaliate": StatusType.THORNS,
 }
 
 

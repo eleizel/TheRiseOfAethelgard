@@ -114,10 +114,10 @@ def test_jack_hunter_parity_and_starting_reserve():
     jack = create_character("jack", level=1)
     assert jack.name == "Jack"
     assert jack.class_id == "hunter"
-    assert len(jack.learned_abilities) == 3
-    assert jack.learned_abilities == ["aimed_shot", "piercing_arrow", "hunters_mark"]
+    assert len(jack.learned_abilities) == 1
+    assert jack.learned_abilities == ["aimed_shot"]
     assert jack.equipment.weapon == "hunter_longbow"
-    assert len(CHARACTER_TREES["jack"]) == 6
+    assert len(CHARACTER_TREES["jack"]) == 8
 
     session = GameSession(seed=42)
     session.initialize_new_game()
@@ -196,12 +196,27 @@ def test_rachel_witch_character_equipment_and_skill_tree():
         item_id in ITEM_REGISTRY
         for item_id in ("orchid_wand", "amethyst_scepter", "witchfire_shawl", "orchid_hairpin")
     )
-    assert set(rachel.learned_abilities) >= {"violet_ember", "orchid_mist", "amethyst_ward"}
+    assert rachel.learned_abilities == ["violet_ember"]
 
     tree = session.skill_trees["rachel"]
     assert tree.character_id == "rachel"
-    rachel.skill_points = 9
-    for node_id in ("rachel_mp_1", "rachel_mag_1", "rachel_skill_1", "rachel_skill_2", "rachel_ult"):
+    rachel.skill_points = 11
+    for node_id in (
+        "rachel_mp_1",
+        "rachel_mag_1",
+        "rachel_t1_mist",
+        "rachel_t1_ward",
+        "rachel_skill_1",
+        "rachel_skill_2",
+        "rachel_ult",
+    ):
         assert tree.unlock_node(rachel, node_id) is True
-    assert set(rachel.learned_abilities) >= {"petal_hex", "wisteria_blaze", "orchid_inferno"}
+    assert set(rachel.learned_abilities) >= {
+        "violet_ember",
+        "orchid_mist",
+        "amethyst_ward",
+        "petal_hex",
+        "wisteria_blaze",
+        "orchid_inferno",
+    }
     assert all(ab_id in ABILITY_REGISTRY for ab_id in rachel.learned_abilities)

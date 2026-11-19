@@ -270,10 +270,10 @@ def test_malignant_belladonna_combat_affinities_flee_block_and_victory_resolutio
         CombatAction(actor_id="rachel", is_player=True, action_type=ActionType.ABILITY, target_id="belladonna_1", ability_id="violet_ember")
     )
     combat.queue_player_action(
-        CombatAction(actor_id="melissa", is_player=True, action_type=ActionType.ABILITY, target_id="belladonna_1", ability_id="flame_lance")
+        CombatAction(actor_id="melissa", is_player=True, action_type=ActionType.ABILITY, target_id="belladonna_1", ability_id="frost_shard")
     )
     combat.queue_player_action(
-        CombatAction(actor_id="lyra", is_player=True, action_type=ActionType.ABILITY, target_id="rowan", ability_id="soothing_bloom")
+        CombatAction(actor_id="lyra", is_player=True, action_type=ActionType.ABILITY, target_id="rowan", ability_id="herbal_salve")
     )
 
     messages: list[str] = []

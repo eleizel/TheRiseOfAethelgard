@@ -104,6 +104,24 @@ SKILL_VFX_REGISTRY: Final[dict[str, SkillVFXConfig]] = {
             ),
         ),
     ),
+    "orchid_mist": SkillVFXConfig(
+        effect_id="orchid_mist",
+        caster_anim="spell",
+        total_duration=1.50,
+        impact_time=0.75,
+        spell_duration=0.80,
+        phases=(
+            VFXPhase(
+                prefix="mist",
+                placement="target_each",
+                start_time=0.15,
+                duration=1.15,
+                frame_count=8,
+                offset=(0.0, -56.0),
+                scale=1.15,
+            ),
+        ),
+    ),
     "petal_hex": SkillVFXConfig(
         effect_id="petal_hex",
         caster_anim="spell",

@@ -185,22 +185,24 @@ def test_stun_skips_turn_and_panacea_cleanses_negative_statuses():
 
 def test_all_statuses_covered_by_starting_abilities_and_self_target():
     from src.data.abilities import ABILITY_REGISTRY
-    from src.data.classes import CLASS_REGISTRY
     from src.entities.actor import StatusType, resolve_status_type
 
     covered: set[StatusType] = set()
-    for cid in ("vanguard", "botanist", "scout", "weave_mage", "hunter"):
-        for aid in CLASS_REGISTRY[cid].starting_abilities:
-            ab = ABILITY_REGISTRY[aid]
-            st = resolve_status_type(ab.status_inflict)
-            if st is not None:
-                covered.add(st)
+    for ab in ABILITY_REGISTRY.values():
+        st = resolve_status_type(ab.status_inflict)
+        if st is not None:
+            covered.add(st)
+        for raw_extra, _chance in ab.extra_statuses:
+            extra_st = resolve_status_type(raw_extra)
+            if extra_st is not None:
+                covered.add(extra_st)
 
     assert covered == set(StatusType)
 
-    # Verify TargetScope.SELF (hunters_mark) applies ATTACK_UP to Jack
+    # Verify TargetScope.SELF (hunters_mark) applies ATTACK_UP and CRIT_UP to Jack
     party = Party()
     jack = create_character("jack")
+    jack.learned_abilities.append("hunters_mark")
     party.add_character(jack)
     enemy = create_enemy("thornvein_creeper", "e1")
     combat = RoundCombat(party=party, enemies=[enemy], seed=1)
@@ -216,3 +218,55 @@ def test_all_statuses_covered_by_starting_abilities_and_self_target():
     while combat.phase == CombatPhase.ACTION_EXECUTION:
         combat.step_next_action()
     assert any(s.status == StatusType.ATTACK_UP for s in jack.statuses)
+    assert any(s.status == StatusType.CRIT_UP for s in jack.statuses)
+
+
+def test_multi_status_thorns_shield_cleanse_and_effective_stats_scaling():
+    from src.entities.actor import ActiveStatus, StatusType
+
+    party = Party()
+    rowan = create_character("rowan")
+    lyra = create_character("lyra")
+    melissa = create_character("melissa")
+    rowan.learned_abilities.append("sunwarden_bastion")
+    lyra.learned_abilities.extend(["thornguard", "regrowth"])
+    melissa.learned_abilities.append("arcane_ward")
+    for member in (rowan, lyra, melissa):
+        party.add_character(member)
+
+    enemy = create_enemy("thornvein_creeper", "e1")
+    combat = RoundCombat(party=party, enemies=[enemy], seed=42)
+
+    # 1. Sunwarden Bastion applies both DEFENSE_UP and ATTACK_UP to all allies
+    combat.queue_player_action(
+        CombatAction(actor_id="rowan", is_player=True, action_type=ActionType.ABILITY, target_id="rowan", ability_id="sunwarden_bastion")
+    )
+    combat.queue_player_action(
+        CombatAction(actor_id="lyra", is_player=True, action_type=ActionType.ABILITY, target_id="lyra", ability_id="thornguard")
+    )
+    combat.queue_player_action(
+        CombatAction(actor_id="melissa", is_player=True, action_type=ActionType.ABILITY, target_id="melissa", ability_id="arcane_ward")
+    )
+    while combat.phase == CombatPhase.ACTION_EXECUTION:
+        combat.step_next_action()
+
+    for member in party.active_members:
+        statuses = {s.status for s in member.statuses}
+        assert {StatusType.DEFENSE_UP, StatusType.ATTACK_UP, StatusType.REGEN, StatusType.THORNS, StatusType.MAGIC_DEFENSE_UP, StatusType.SHIELD} <= statuses
+
+    # 2. Regrowth cleanses negative ailments
+    rowan.statuses.append(ActiveStatus(status=StatusType.POISON, duration=3, magnitude=5))
+    rowan.current_hp = 50
+    combat.queue_player_action(
+        CombatAction(actor_id="rowan", is_player=True, action_type=ActionType.DEFEND)
+    )
+    combat.queue_player_action(
+        CombatAction(actor_id="lyra", is_player=True, action_type=ActionType.ABILITY, target_id="rowan", ability_id="regrowth")
+    )
+    combat.queue_player_action(
+        CombatAction(actor_id="melissa", is_player=True, action_type=ActionType.DEFEND)
+    )
+    while combat.phase == CombatPhase.ACTION_EXECUTION:
+        combat.step_next_action()
+    assert all(s.status != StatusType.POISON for s in rowan.statuses)
+    assert rowan.current_hp > 50

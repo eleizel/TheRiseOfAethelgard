@@ -334,18 +334,29 @@ class RoundCombat:
         applied_status: str | None = None
         missed_all = False
 
-        raw_stat = float(actor.base_stats.attack if isinstance(actor, Character) else actor.stats.attack)
-        raw_mag = float(actor.base_stats.magic_attack if isinstance(actor, Character) else actor.stats.magic_attack)
-        crit_rate = actor.base_stats.crit_chance if isinstance(actor, Character) else actor.stats.crit_chance
+        actor_stats = actor.effective_stats if isinstance(actor, Character) else actor.stats
+        raw_stat = float(actor_stats.attack)
+        raw_mag = float(actor_stats.magic_attack)
+        crit_rate = actor_stats.crit_chance + ability.crit_bonus
 
         if self._has_status(actor, StatusType.ATTACK_UP):
             raw_stat *= 1.35
             raw_mag *= 1.35
+        if self._has_status(actor, StatusType.CRIT_UP):
+            crit_rate = min(1.0, crit_rate + 0.20)
         if self._has_status(actor, StatusType.WEAKEN):
             raw_stat *= 0.70
             raw_mag *= 0.70
 
-        status_type = resolve_status_type(ability.status_inflict)
+        status_specs: list[tuple[StatusType, float]] = []
+        primary_st = resolve_status_type(ability.status_inflict)
+        if primary_st is not None:
+            status_specs.append((primary_st, ability.status_chance))
+        for raw_extra, extra_chance in ability.extra_statuses:
+            extra_st = resolve_status_type(raw_extra)
+            if extra_st is not None:
+                status_specs.append((extra_st, extra_chance))
+
         is_blinded = self._has_status(actor, StatusType.BLIND)
 
         is_support = ability.element == AbilityElement.HEAL or ability.scope in (
@@ -357,34 +368,52 @@ class RoundCombat:
         for target in targets:
             if is_support:
                 actual = 0
+                if ability.cleanse_status:
+                    target.statuses = [s for s in target.statuses if s.status not in NEGATIVE_STATUSES]
                 if ability.element == AbilityElement.HEAL and ability.power > 0 and isinstance(target, Character):
                     heal_amt = int(ability.power + raw_mag * 0.8)
                     actual = target.heal(heal_amt)
                 heals.append(actual)
 
-                if status_type and self.rng.random() < ability.status_chance:
-                    mag = max(8, int(raw_mag * 0.4)) if status_type == StatusType.REGEN else 0
-                    self._apply_status(target, status_type, duration=3, magnitude=mag)
-                    applied_status = status_type.name
+                for st_type, st_chance in status_specs:
+                    if self.rng.random() < st_chance:
+                        if st_type == StatusType.REGEN:
+                            mag = max(8, int(raw_mag * 0.4))
+                        elif st_type == StatusType.SHIELD:
+                            mag = max(18, int(raw_mag * 1.4))
+                        else:
+                            mag = 0
+                        self._apply_status(target, st_type, duration=3, magnitude=mag)
+                        applied_status = st_type.name
             else:
-                if is_blinded and self.rng.random() < 0.45:
+                if is_blinded and ability.id != "aimed_shot" and self.rng.random() < 0.45:
                     damages.append(0)
                     continue
 
-                target_def = float(target.base_stats.defense if isinstance(target, Character) else target.stats.defense)
+                t_stats = target.effective_stats if isinstance(target, Character) else target.stats
+                is_physical = ability.element == AbilityElement.PHYSICAL
+                target_def = float(t_stats.defense if is_physical else t_stats.magic_defense)
                 if target.id in self.defending_actors:
                     target_def *= 1.6
-                if self._has_status(target, StatusType.DEFENSE_UP):
+                if is_physical and self._has_status(target, StatusType.DEFENSE_UP):
                     target_def *= 1.4
+                elif not is_physical and self._has_status(target, StatusType.DEFENSE_UP):
+                    target_def *= 1.25
+                if not is_physical and self._has_status(target, StatusType.MAGIC_DEFENSE_UP):
+                    target_def *= 1.45
                 if self._has_status(target, StatusType.VULNERABLE):
                     target_def *= 0.65
 
                 elem_mult = self._get_element_multiplier(ability.element.name, target)
-                is_crit = self.rng.random() < crit_rate
+                is_crit = self.rng.random() < min(1.0, crit_rate)
                 if is_crit:
                     has_crit = True
 
-                raw_dmg = int(ability.power + (raw_stat if ability.element == AbilityElement.PHYSICAL else raw_mag) * 0.9)
+                raw_dmg = int(ability.power + (raw_stat if is_physical else raw_mag) * 0.9)
+                if ability.bonus_vs_status > 0.0 and any(
+                    s.status in NEGATIVE_STATUSES for s in target.statuses
+                ):
+                    raw_dmg = int(raw_dmg * (1.0 + ability.bonus_vs_status))
                 dmg = calculate_damage(
                     raw_dmg=raw_dmg,
                     defense=int(target_def),
@@ -392,14 +421,30 @@ class RoundCombat:
                     is_crit=is_crit,
                     rng=self.rng,
                 )
+
+                # Absorb damage with SHIELD status if active
+                shield_st = next((s for s in target.statuses if s.status == StatusType.SHIELD), None)
+                if shield_st and shield_st.magnitude > 0 and dmg > 0:
+                    absorbed = min(dmg, shield_st.magnitude)
+                    shield_st.magnitude -= absorbed
+                    dmg -= absorbed
+                    if shield_st.magnitude <= 0:
+                        target.statuses = [s for s in target.statuses if s is not shield_st]
+
                 actual_dmg = target.take_damage(dmg)
                 damages.append(actual_dmg)
 
-                # Check status application
-                if status_type and self.rng.random() < ability.status_chance:
-                    dur = 2 if status_type == StatusType.STUN else 3
-                    self._apply_status(target, status_type, duration=dur, magnitude=max(4, dmg // 3))
-                    applied_status = status_type.name
+                # Reflect 25% damage back when target has THORNS active
+                if actual_dmg > 0 and actor.is_alive and self._has_status(target, StatusType.THORNS):
+                    thorns_dmg = max(1, int(actual_dmg * 0.25))
+                    actor.take_damage(thorns_dmg)
+
+                # Check status application(s)
+                for st_type, st_chance in status_specs:
+                    if self.rng.random() < st_chance:
+                        dur = 2 if st_type == StatusType.STUN else 3
+                        self._apply_status(target, st_type, duration=dur, magnitude=max(4, dmg // 3))
+                        applied_status = st_type.name
 
         if not is_support and damages and all(d == 0 for d in damages) and is_blinded:
             missed_all = True
