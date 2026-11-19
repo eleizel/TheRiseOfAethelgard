@@ -113,8 +113,8 @@ All character, NPC, and enemy sprites **MUST** match these exact pixel dimension
   - **Composition Tip:** Keep the upper `y = 0..130` band relatively uncluttered (top announcement banner sits at `y=14..62` and action-name banner sits at `y=82..120`) and leave clear ground footing around `y = 330..480` on the left (enemies) and `y = 330..470` on the right (party).
 
 ### F. Status Icons & UI Assets
-- **Status Icons:** `assets/sprites/status/<status_name>.png` (`24×24` RGBA PNG).
-  - 11 statuses: `poison`, `bleed`, `burn`, `stun`, `blind`, `vulnerable`, `weaken`, `regen`, `attack_up`, `defense_up`, `speed_up`.
+- **Status Icons:** `assets/sprites/status/status_<status_name>.png` (`24×24` RGBA PNG).
+  - 15 statuses: `poison`, `bleed`, `burn`, `stun`, `blind`, `vulnerable`, `weaken`, `regeneration`, `attack_up`, `fortify`, `haste`, `thorns`, `shield`, `crit_up`, `magic_defense_up`.
   - Loaded by `get_status_icon()` in `src/frontends/pygame_ce/ui_manager.py`.
 
 ---

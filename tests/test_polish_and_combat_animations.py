@@ -666,6 +666,20 @@ def test_hit_flash_surface_is_red_and_preserves_transparency():
     assert center.r > center.b
 
 
+def test_all_status_type_icons_load():
+    from src.entities.actor import StatusType
+    from src.frontends.pygame_ce.ui_manager import get_status_icon
+
+    pygame.init()
+    try:
+        for st in StatusType:
+            icon = get_status_icon(st, size=24)
+            assert icon is not None, f"Missing status icon for {st}"
+            assert icon.get_size() == (24, 24)
+    finally:
+        pygame.quit()
+
+
 
 
 

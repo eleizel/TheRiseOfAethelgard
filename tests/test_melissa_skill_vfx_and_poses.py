@@ -40,7 +40,7 @@ MELISSA_EFFECT_SHEETS: list[tuple[str, str, tuple[int, int], tuple[int, int]]] =
     ("frost_shard", "impact", (320, 160), (80, 80)),
     ("arcane_ward", "buff", (320, 160), (80, 80)),
     ("blizzard_surge", "charge", (320, 160), (80, 80)),
-    ("blizzard_surge", "impact", (640, 320), (160, 160)),
+    ("blizzard_surge", "impact", (384, 192), (96, 96)),
     ("pyroclasm", "charge", (320, 160), (80, 80)),
     ("pyroclasm", "impact", (320, 160), (80, 80)),
     ("supernova", "charge", (320, 160), (80, 80)),

@@ -405,3 +405,51 @@ def test_orchid_mist_sheet_loads_and_renders_for_all_enemies():
     finally:
         pygame.quit()
 
+
+def test_amethyst_ward_sheet_loads_and_renders_on_ally():
+    import pygame
+
+    from src.core.session import GameSession
+    from src.data.enemies import create_enemy
+    from src.frontends.pygame_ce.views.combat_view import CombatView
+    from src.systems.combat.round_combat import ActionResult, RoundCombat
+
+    pygame.init()
+    try:
+        manager = EnemySpriteManager()
+        assert manager.get_effect_frame_count("amethyst_ward", "ward") == 8
+        frame = manager.get_projectile_frame("amethyst_ward", 3, prefix="ward")
+        assert frame is not None
+        assert frame.get_size() == (80, 80)
+
+        session = GameSession(seed=42)
+        session.initialize_new_game()
+        enemy = create_enemy("bramble_hound", "e1")
+        session.combat = RoundCombat(party=session.party, enemies=[enemy], seed=42)
+        view = CombatView(session=session)
+        view.on_enter()
+
+        rachel = next(c for c in session.party.active_members if c.id == "rachel")
+        rowan = next(c for c in session.party.active_members if c.id == "rowan")
+        aw_res = ActionResult(
+            source_name=rachel.name,
+            action_name="Amethyst Ward",
+            target_names=[rowan.name],
+            damage_dealt=[],
+            healing_dealt=[],
+            is_crit=False,
+            status_applied="DEFENSE_UP",
+            message="Rachel used Amethyst Ward on Rowan!",
+            ability_id="amethyst_ward",
+            target_ids=[rowan.id],
+        )
+        view._trigger_attacker_animation(aw_res)
+        assert len(view.active_vfx_instances) == 1
+        assert view.active_vfx_instances[0]["prefix"] == "ward"
+
+        view.update(0.50)
+        surf = pygame.Surface((1280, 720), pygame.SRCALPHA)
+        view._draw_active_vfx(surf)
+    finally:
+        pygame.quit()
+

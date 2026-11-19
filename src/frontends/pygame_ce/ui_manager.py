@@ -200,6 +200,10 @@ _STATUS_ICON_FILENAMES: dict[StatusType, str] = {
     StatusType.ATTACK_UP: "status_attack_up.png",
     StatusType.DEFENSE_UP: "status_fortify.png",
     StatusType.SPEED_UP: "status_haste.png",
+    StatusType.THORNS: "status_thorns.png",
+    StatusType.SHIELD: "status_shield.png",
+    StatusType.CRIT_UP: "status_crit_up.png",
+    StatusType.MAGIC_DEFENSE_UP: "status_magic_defense_up.png",
 }
 _STATUS_ICON_BASE_CACHE: dict[StatusType, pygame.Surface | None] = {}
 _STATUS_ICON_SCALED_CACHE: dict[tuple[StatusType, int], pygame.Surface] = {}

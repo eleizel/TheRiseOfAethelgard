@@ -122,6 +122,24 @@ SKILL_VFX_REGISTRY: Final[dict[str, SkillVFXConfig]] = {
             ),
         ),
     ),
+    "amethyst_ward": SkillVFXConfig(
+        effect_id="amethyst_ward",
+        caster_anim="spell",
+        total_duration=1.50,
+        impact_time=0.75,
+        spell_duration=0.80,
+        phases=(
+            VFXPhase(
+                prefix="ward",
+                placement="target_each",
+                start_time=0.15,
+                duration=1.15,
+                frame_count=8,
+                offset=(0.0, -76.0),
+                scale=1.10,
+            ),
+        ),
+    ),
     "petal_hex": SkillVFXConfig(
         effect_id="petal_hex",
         caster_anim="spell",
@@ -251,7 +269,7 @@ SKILL_VFX_REGISTRY: Final[dict[str, SkillVFXConfig]] = {
                 duration=1.10,
                 frame_count=8,
                 offset=(0.0, -72.0),
-                scale=1.15,
+                scale=1.85,
             ),
         ),
     ),
